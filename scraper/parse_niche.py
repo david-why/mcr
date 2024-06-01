@@ -55,7 +55,7 @@ def find_school(pages, slug):
                 return entity['content']
 
 
-def parse_school(data):
+def parse_school(data, idx):
     result = {}
     for field in FIELDS:
         result[field] = None
@@ -83,9 +83,13 @@ def parse_school(data):
                     if label == 'Acceptance Rate':
                         result['acceptance_rate'] = content['value']
                     if label == 'SAT Range' and content['value']:
-                        result['sat_range'] = list(map(int, content['value'].split('-', 2)))
+                        result['sat_range'] = list(
+                            map(int, content['value'].split('-', 2))
+                        )
                     if label == 'ACT Range' and content['value']:
-                        result['act_range'] = list(map(float, content['value'].split('-', 2)))
+                        result['act_range'] = list(
+                            map(float, content['value'].split('-', 2))
+                        )
                     if label == 'SAT/ACT':
                         result['test_requirement'] = TEST_REQUIREMENT.get(
                             content['value']
@@ -130,6 +134,8 @@ def parse_school(data):
                     continue
                 for badge in group['badges']:
                     key = badge['vanityURL']
+                    if key == 'best-colleges':
+                        continue
                     if key.startswith('best-colleges-for-'):
                         # key = key[18:].replace('-', ' ').title()
                         # majors.add(key)
@@ -150,6 +156,7 @@ def parse_school(data):
                             'total': badge['total'],
                         }
                         rankings[key] = {'total': badge['total'], 'name': name}
+    result['rankings']['best-colleges'] = {'total': len(schools), 'ordinal': idx + 1}
     # admissions page
     admissions_page = data['admissions']
     for block in admissions_page['blocks']:
@@ -205,12 +212,12 @@ with open(sys.argv[1], 'r') as f:
 
 result = []
 majors = set()
-rankings = {}
+rankings = {'best-colleges': {'total': len(schools), 'name': 'Best Colleges'}}
 major_rankings = {}
 
 for i, school in enumerate(schools):
     print('parsing school', i, school['entity_data']['name'])
-    result.append(parse_school(school))
+    result.append(parse_school(school, i))
 
 print('writing data')
 
