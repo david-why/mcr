@@ -14,19 +14,6 @@ function addCommas(value: number) {
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
-const nicheGrade = computed(() => {
-  if (props.school.niche_grade === 4.33) return 'A+'
-  if (props.school.niche_grade === 4) return 'A'
-  if (props.school.niche_grade === 3.66) return 'A-'
-  if (props.school.niche_grade === 3.33) return 'B+'
-  if (props.school.niche_grade === 3) return 'B'
-  if (props.school.niche_grade === 2.66) return 'B-'
-  if (props.school.niche_grade === 2.33) return 'C+'
-  if (props.school.niche_grade === 2) return 'C'
-  if (props.school.niche_grade === 1.66) return 'C-'
-  return '-'
-})
-
 const acceptanceRate = computed(() => {
   if (!props.school.acceptance_rate) return '-'
   const rounded = Math.round(props.school.acceptance_rate * 1000) / 10
@@ -64,25 +51,25 @@ const graduationRate = computed(() => {
   <AModal centered v-model:open="isOpen" class="school-modal" :footer="false" style="width: 100vw">
     <h1>{{ school.name }}</h1>
     <p>
-      {{ school.character }} | Niche Grade {{ nicheGrade }} | {{ school.location }} |
+      {{ school.character }} | {{ school.location }} |
       <a :href="school.website" target="_blank">Official website</a> |
       <a :href="`https://www.niche.com/colleges/${school.slug}/`" target="_blank">Niche.com page</a>
     </p>
     <ARow>
+      <DetailCol name="Niche Overall Rank" :value="overallRank"></DetailCol>
+      <DetailCol name="Undergrads" :value="undergrads"></DetailCol>
       <DetailCol name="Acceptance Rate" :value="acceptanceRate"></DetailCol>
+      <DetailCol name="Graduation Rate" :value="graduationRate"></DetailCol>
       <DetailCol
         name="Net Price"
         :value="netPrice"
         tooltip="Average cost after financial aids and scholarships"
       ></DetailCol>
-      <DetailCol name="Undergrads" :value="undergrads"></DetailCol>
       <DetailCol
         name="Earnings after College"
         :value="earningsAfterCollege"
         tooltip="Median earnings 6 years after graduation"
       ></DetailCol>
-      <DetailCol name="Niche Overall Rank" :value="overallRank"></DetailCol>
-      <DetailCol name="Graduation Rate" :value="graduationRate"></DetailCol>
     </ARow>
     <ARow>
       <ACol :span="24" style="height: 350px">

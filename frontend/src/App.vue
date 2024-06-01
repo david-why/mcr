@@ -138,19 +138,22 @@ const schoolModalOpen = ref(false)
     </header>
     <aside>
       <div style="padding: 0 12px">
-        <h2 style="margin: 10px 0">Choose your parameters!</h2>
         <ASelect
           :options="paramOptions"
           v-model:value="addParamValue"
-          style="width: 100%"
+          style="width: 100%; margin-top: 36px"
         ></ASelect>
-        <AList :data-source="paramListData" :locale="{ emptyText: 'No params added' }" size="large">
+        <AList
+          :data-source="paramListData"
+          :locale="{ emptyText: 'Choose your parameters above!' }"
+          size="large"
+        >
           <template #renderItem="{ item }">
             <AListItem>
               <AListItemMeta>
                 <template #title>
                   <div style="display: flex; width: 100%">
-                    <span>{{ item.name }}</span>
+                    <span style="font-size: 20px">{{ item.name }}</span>
                     <span style="flex: 1 0 0"></span>
                     <span
                       style="cursor: pointer"
@@ -159,7 +162,6 @@ const schoolModalOpen = ref(false)
                       >&#x274C;</span
                     >
                   </div>
-                  <!-- {{ item.name }} -->
                 </template>
                 <template #description>
                   <div style="color: rgba(0, 0, 0, 0.88)">
@@ -204,7 +206,8 @@ const schoolModalOpen = ref(false)
                 hoverable
                 @click="(schoolModal = item), (schoolModalOpen = true)"
               >
-                <ACardMeta :title="item.name + ' | Score: ' + item.score">
+                <ACardMeta>
+                  <template #title><span style="font-size: 18px">{{ item.name }} // Score: {{ item.score }}</span></template>
                   <template #avatar>
                     <div
                       class="ranking-number"
@@ -256,12 +259,14 @@ const schoolModalOpen = ref(false)
 </template>
 
 <style scoped>
+/* Layout */
 .container {
   display: grid;
   grid-template-columns: 350px 1fr;
   grid-template-rows: 64px 1fr;
   grid-template-areas: 'header header' 'aside main';
 }
+/* Header */
 .layout-header {
   grid-area: header;
   width: 100%;
@@ -274,6 +279,14 @@ const schoolModalOpen = ref(false)
 }
 .header-title {
   font-size: 24px;
+}
+/* School list */
+.school-list-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+.school-list-item:nth-child(2n + 1) .school-list-card {
+  background: #f5f5f5;
 }
 .school-list-card {
   width: 100%;
@@ -290,9 +303,6 @@ const schoolModalOpen = ref(false)
   text-align: center;
   font-weight: bold;
 }
-.school-list-item:nth-child(2n + 1) .school-list-card {
-  background: #f5f5f5;
-}
 .school-list :deep(.ant-list-item-meta) {
   align-items: stretch;
 }
@@ -302,27 +312,15 @@ const schoolModalOpen = ref(false)
   justify-content: center;
   min-height: 100%;
 }
+/* Help modal */
 .help-modal p {
   margin-bottom: 8px;
-}
-.school-modal h2 {
-  font-weight: 500;
-}
-.layout-content {
-  padding: 30px;
-}
-.school-list-item {
-  padding-left: 0;
-  padding-right: 0;
 }
 @media screen and (max-width: 768px) {
   .container {
     grid-template-rows: 64px auto 1fr;
     grid-template-columns: 1fr;
     grid-template-areas: 'header' 'aside' 'main';
-  }
-  .layout-content {
-    padding: 0;
   }
   .school-description {
     display: none;
