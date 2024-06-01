@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
-import IconR from '@/components/icons/IconR.vue'
 import params from '@/params'
 import { seenHelp, userParams } from '@/store'
 import { computed, ref, watch } from 'vue'
@@ -80,7 +79,6 @@ function calcScore(school: any) {
     const paramData = params.find((p) => p.id === param.id)!
     score += paramData.func(school, param.args) * param.importance
   }
-  console.log('mult', scoreMultiplier.value)
   if (!isFinite(scoreMultiplier.value)) return 100
   return Math.round(score * scoreMultiplier.value * 10) / 10
 }
@@ -95,6 +93,9 @@ const scoredSchools = computed(() => {
 const sortedSchoolsData = computed(() => {
   return [...scoredSchools.value].sort((a, b) => b.score - a.score)
 })
+
+const schoolModal = ref(data.schools[0])
+const schoolModalOpen = ref(false)
 </script>
 
 <template>
@@ -110,79 +111,96 @@ const sortedSchoolsData = computed(() => {
         breakpoint="lg"
         collapsed-width="0"
         width="350"
-        style="padding: 0 12px"
       >
-        <h2 style="margin: 10px 0">Choose your parameters!</h2>
-        <ASelect
-          :options="paramOptions"
-          v-model:value="addParamValue"
-          style="width: 100%"
-        ></ASelect>
-        <AList :data-source="paramListData" :locale="{ emptyText: 'No params added' }" size="large">
-          <template #renderItem="{ item }">
-            <AListItem>
-              <AListItemMeta>
-                <template #title>
-                  <div style="display: flex; width: 100%">
-                    <span>{{ item.name }}</span>
-                    <span style="flex: 1 0 0"></span>
-                    <span
-                      style="cursor: pointer"
-                      title="Delete this parameter"
-                      @click="deleteParam(item.id)"
-                      >&#x274C;</span
-                    >
-                  </div>
-                  <!-- {{ item.name }} -->
-                </template>
-                <template #description>
-                  <div style="color: rgba(0, 0, 0, 0.88)">
-                    <p>Importance</p>
-                    <ASlider
-                      :min="0"
-                      :max="100"
-                      :step="1"
-                      :value="item.importance"
-                      @change="changeImportance(item.id, $event)"
-                    ></ASlider>
-                    <template v-for="arg in item.param.arguments" :key="arg.id">
-                      <p>{{ arg.name }}</p>
-                      <ASlider
-                        :min="arg.min"
-                        :max="arg.max"
-                        :step="arg.step || 1"
-                        :value="item.args[arg.id]"
-                        @change="changeArgument(item.id, arg.id, $event)"
-                      ></ASlider>
-                    </template>
-                  </div>
-                </template>
-              </AListItemMeta>
-            </AListItem>
-          </template>
-        </AList>
-      </ALayoutSider>
-      <ALayoutContent style="padding: 30px">
-        <div style="padding: 24px; background: #fff">
-          <AList :data-source="sortedSchoolsData">
-            <template #renderItem="{ item, index }">
+        <div style="padding: 0 12px">
+          <h2 style="margin: 10px 0">Choose your parameters!</h2>
+          <ASelect
+            :options="paramOptions"
+            v-model:value="addParamValue"
+            style="width: 100%"
+          ></ASelect>
+          <AList
+            :data-source="paramListData"
+            :locale="{ emptyText: 'No params added' }"
+            size="large"
+          >
+            <template #renderItem="{ item }">
               <AListItem>
-                <AListItemMeta
-                  :title="item.name + ' | Score: ' + item.score"
-                  :description="item.description"
-                >
-                  <template #avatar>
-                    <div
-                      class="ranking-number"
-                      :style="{
-                        background: index < 3 ? ['#ffd700', '#a0a0a0', '#b36700'][index] : '#eee',
-                        color: index < 3 ? '#fff' : undefined
-                      }"
-                    >
-                      {{ index + 1 }}
+                <AListItemMeta>
+                  <template #title>
+                    <div style="display: flex; width: 100%">
+                      <span>{{ item.name }}</span>
+                      <span style="flex: 1 0 0"></span>
+                      <span
+                        style="cursor: pointer"
+                        title="Delete this parameter"
+                        @click="deleteParam(item.id)"
+                        >&#x274C;</span
+                      >
+                    </div>
+                    <!-- {{ item.name }} -->
+                  </template>
+                  <template #description>
+                    <div style="color: rgba(0, 0, 0, 0.88)">
+                      <p>Importance</p>
+                      <ASlider
+                        :min="0"
+                        :max="100"
+                        :step="1"
+                        :value="item.importance"
+                        @change="changeImportance(item.id, $event)"
+                      ></ASlider>
+                      <template v-for="arg in item.param.arguments" :key="arg.id">
+                        <p>{{ arg.name }}</p>
+                        <ASlider
+                          :min="arg.min"
+                          :max="arg.max"
+                          :step="arg.step || 1"
+                          :value="item.args[arg.id]"
+                          @change="changeArgument(item.id, arg.id, $event)"
+                        ></ASlider>
+                      </template>
                     </div>
                   </template>
                 </AListItemMeta>
+              </AListItem>
+            </template>
+          </AList>
+        </div>
+      </ALayoutSider>
+      <ALayoutContent style="padding: 30px">
+        <div style="padding: 24px; background: #fff">
+          <AList
+            class="school-list"
+            :data-source="sortedSchoolsData"
+            :split="false"
+            :row-key="(item) => item.slug"
+          >
+            <template #renderItem="{ item, index }">
+              <AListItem class="school-list-item">
+                <ACard
+                  class="school-list-card"
+                  hoverable
+                  @click="(schoolModal = item), (schoolModalOpen = true)"
+                >
+                  <ACardMeta
+                    :title="item.name + ' | Score: ' + item.score"
+                    :description="item.description"
+                  >
+                    <template #avatar>
+                      <div
+                        class="ranking-number"
+                        :style="{
+                          background:
+                            index < 3 ? ['#ffd700', '#a0a0a0', '#b36700'][index] : '#e2e2e2',
+                          color: index < 3 ? '#fff' : undefined
+                        }"
+                      >
+                        {{ index + 1 }}
+                      </div>
+                    </template>
+                  </ACardMeta>
+                </ACard>
               </AListItem>
             </template>
           </AList>
@@ -213,6 +231,7 @@ const sortedSchoolsData = computed(() => {
       <AButton type="primary" @click="seenHelp = true">Let's go!</AButton>
     </template>
   </AModal>
+  <SchoolModal :school="schoolModal" v-model:open="schoolModalOpen"></SchoolModal>
 </template>
 
 <style scoped>
@@ -225,7 +244,22 @@ const sortedSchoolsData = computed(() => {
   text-align: center;
   font-weight: bold;
 }
+.school-list-item:nth-child(2n + 1) .school-list-card {
+  background: #f5f5f5;
+}
+.school-list :deep(.ant-list-item-meta) {
+  align-items: stretch;
+}
+.school-list :deep(.ant-list-item-meta-content) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+}
 .help-modal p {
   margin-bottom: 8px;
+}
+.school-modal h2 {
+  font-weight: 500;
 }
 </style>

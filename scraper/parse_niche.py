@@ -12,7 +12,10 @@ FIELDS = [
     # entity_data
     'name',
     'slug',
+    'character',
+    'location',
     # main page
+    'niche_grade',
     'description',
     'website',
     'acceptance_rate',
@@ -62,11 +65,15 @@ def parse_school(data, idx):
     # entity_data
     result['name'] = data['entity_data']['name']
     result['slug'] = data['entity_data']['url']
+    result['character'] = data['entity_data']['character']
+    result['location'] = data['entity_data']['location']
     # main page
     for block in data['blocks']:
         if block['config'] is None:
             continue
         anchor = block['config'].get('anchor')
+        if anchor == ['report-card']:
+            result['niche_grade'] = block['buckets']['1']['contents'][0]['value']
         if anchor == ['editorial']:
             result['description'] = block['buckets']['1']['contents'][0]['value']
         if anchor == ['from-the-school'] and block['buckets']['2']['contents']:

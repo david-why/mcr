@@ -6,9 +6,14 @@ defineProps<{ school: School }>()
 </script>
 
 <template>
-  <LMap ref="map" :center="[37.0902, -95.7129]" :zoom="4" :use-global-leaflet="false">
+  <LMap
+    ref="map"
+    :center="[school.latitude, school.longitude]"
+    :zoom="4"
+    :use-global-leaflet="false"
+  >
     <LTileLayer
-      url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png "
+      url="https://tile.openstreetmap.org/{z}/{x}/{y}.png "
       layer-type="base"
       name="OpenStreetMap"
       attribution="&copy; OpenStreetMap contributors"

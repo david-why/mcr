@@ -1,0 +1,29 @@
+<script setup lang="ts">
+import { QuestionCircleOutlined } from '@ant-design/icons-vue'
+defineProps<{
+  name: string
+  value: string
+  tooltip?: string
+}>()
+</script>
+
+<template>
+  <ACol :xl="4" :lg="8" :sm="12" :span="24">
+    <div class="detail-name">
+      {{ name }}
+      <ATooltip v-if="tooltip" :title="tooltip">
+        <QuestionCircleOutlined></QuestionCircleOutlined>
+      </ATooltip>
+    </div>
+    <div class="detail-text">{{ value }}</div>
+  </ACol>
+</template>
+
+<style scoped>
+.detail-name {
+  font-size: 18px;
+}
+.detail-text {
+  font-size: 32px;
+}
+</style>

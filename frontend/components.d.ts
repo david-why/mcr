@@ -8,6 +8,9 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AButton: typeof import('ant-design-vue/es')['Button']
+    ACard: typeof import('ant-design-vue/es')['Card']
+    ACardMeta: typeof import('ant-design-vue/es')['CardMeta']
+    ACol: typeof import('ant-design-vue/es')['Col']
     ALayout: typeof import('ant-design-vue/es')['Layout']
     ALayoutContent: typeof import('ant-design-vue/es')['LayoutContent']
     ALayoutHeader: typeof import('ant-design-vue/es')['LayoutHeader']
@@ -16,10 +19,14 @@ declare module 'vue' {
     AListItem: typeof import('ant-design-vue/es')['ListItem']
     AListItemMeta: typeof import('ant-design-vue/es')['ListItemMeta']
     AModal: typeof import('ant-design-vue/es')['Modal']
+    ARow: typeof import('ant-design-vue/es')['Row']
     ASelect: typeof import('ant-design-vue/es')['Select']
     ASlider: typeof import('ant-design-vue/es')['Slider']
+    ATooltip: typeof import('ant-design-vue/es')['Tooltip']
+    DetailCol: typeof import('./src/components/DetailCol.vue')['default']
     IconR: typeof import('./src/components/icons/IconR.vue')['default']
     SchoolMap: typeof import('./src/components/SchoolMap.vue')['default']
+    SchoolModal: typeof import('./src/components/SchoolModal.vue')['default']
     SliderInput: typeof import('./src/components/SliderInput.vue')['default']
   }
 }
