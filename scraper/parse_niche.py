@@ -48,6 +48,13 @@ TEST_REQUIREMENT = {
 }
 
 
+def find_school(pages, slug):
+    for page in pages:
+        for entity in page['entities']:
+            if entity['content']['entity']['url'] == slug:
+                return entity['content']
+
+
 def parse_school(data):
     result = {}
     for field in FIELDS:
@@ -75,10 +82,10 @@ def parse_school(data):
                     label = content.get('label')
                     if label == 'Acceptance Rate':
                         result['acceptance_rate'] = content['value']
-                    if label == 'SAT Range':
-                        result['sat_range'] = content['value']
-                    if label == 'ACT Range':
-                        result['act_range'] = content['value']
+                    if label == 'SAT Range' and content['value']:
+                        result['sat_range'] = list(map(int, content['value'].split('-', 2)))
+                    if label == 'ACT Range' and content['value']:
+                        result['act_range'] = list(map(float, content['value'].split('-', 2)))
                     if label == 'SAT/ACT':
                         result['test_requirement'] = TEST_REQUIREMENT.get(
                             content['value']
@@ -137,14 +144,12 @@ def parse_school(data):
                         }
                         major_rankings[key] = {'total': badge['total'], 'name': name}
                     else:
+                        name = badge['display'].removesuffix(' in America')
                         result['rankings'][badge['vanityURL']] = {
                             'ordinal': badge['ordinal'],
                             'total': badge['total'],
                         }
-                        rankings[key] = {
-                            'total': badge['total'],
-                            'name': badge['display'],
-                        }
+                        rankings[key] = {'total': badge['total'], 'name': name}
     # admissions page
     admissions_page = data['admissions']
     for block in admissions_page['blocks']:
@@ -180,6 +185,11 @@ def parse_school(data):
                 )
         if anchor == ['about-the-professors']:
             result['professor_salary'] = block['buckets']['1']['contents'][4]['value']
+    # search page
+    search_content = find_school(pages, result['slug'])
+    assert search_content
+    result['latitude'] = search_content['centroid']['lat']
+    result['longitude'] = search_content['centroid']['lon']
     return result
 
 
