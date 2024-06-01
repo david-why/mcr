@@ -36,11 +36,11 @@ export declare interface UserParameter {
 }
 
 // Niche ranking
-function rankingParam(id: keyof typeof data.rankings): Parameter {
-  const name = data.rankings[id].name
+function rankingParam(id: keyof typeof data.rankings, name?: string): Parameter {
+  const defaultName = data.rankings[id].name
   return {
     id,
-    name,
+    name: name === undefined ? defaultName : name,
     group: 'Rankings',
     arguments: [],
     func: (school: School) => {
@@ -87,14 +87,23 @@ const params: Parameter[] = [
       if (sat < min) return 0
       return (sat - min) / (max - min)
     }
-  }
+  },
+  rankingParam('best-colleges', 'Niche Overall Rank'),
+  rankingParam('best-college-academics', 'Best Academics'),
+  rankingParam('best-college-athletics', 'Best Athletics'),
+  rankingParam('best-college-campuses', 'Best Campuses'),
+  rankingParam('best-college-dorms', 'Best Dorms'),
+  rankingParam('best-college-food', 'Best Food'),
+  rankingParam('best-greek-life-colleges', 'Best Greek Life'),
+  rankingParam('best-college-professors', 'Best Professors'),
+  rankingParam('best-student-life', 'Best Student Life'),
+  rankingParam('most-conservative-colleges', 'Most Conservative'),
+  rankingParam('most-liberal-colleges', 'Most Liberal'),
+  rankingParam('safest-colleges', 'Most Safe'),
+  rankingParam('top-party-schools', 'Top Party Schools')
 ]
 
-for (const id in data.rankings) {
-  params.push(rankingParam(id as keyof typeof data.rankings))
-}
-
-for (const id in data.major_rankings) {
+for (const id of Object.keys(data.major_rankings).sort((a, b) => a.localeCompare(b))) {
   params.push(majorRankingParam(id as keyof typeof data.major_rankings))
 }
 

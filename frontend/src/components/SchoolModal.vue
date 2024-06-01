@@ -40,10 +40,17 @@ const overallRank = computed(() => {
   return `#${ranking}`
 })
 
-const graduationRate = computed(() => {
-  if (!props.school.graduation_rate) return '-'
-  const rounded = Math.round(props.school.graduation_rate * 1000) / 10
-  return `${rounded}%`
+const testRequirement = computed(() => {
+  if (props.school.test_requirement === null) return undefined
+  return ['Neither required nor recommended', 'Considered but not required', 'Required'][
+    props.school.test_requirement
+  ]
+})
+
+const satRange = computed(() => {
+  if (!props.school.sat_range) return '-'
+  const [min, max] = props.school.sat_range
+  return `${min}-${max}`
 })
 </script>
 
@@ -57,9 +64,13 @@ const graduationRate = computed(() => {
     </p>
     <ARow>
       <DetailCol name="Niche Overall Rank" :value="overallRank"></DetailCol>
-      <DetailCol name="Undergrads" :value="undergrads"></DetailCol>
+      <DetailCol
+        name="Undergrads"
+        :value="undergrads"
+        tooltip="Number of undergrads enrolled full-time"
+      ></DetailCol>
       <DetailCol name="Acceptance Rate" :value="acceptanceRate"></DetailCol>
-      <DetailCol name="Graduation Rate" :value="graduationRate"></DetailCol>
+      <DetailCol name="SAT Range" :value="satRange" :tooltip="testRequirement"></DetailCol>
       <DetailCol
         name="Net Price"
         :value="netPrice"

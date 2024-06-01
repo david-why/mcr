@@ -3,6 +3,7 @@ import data from '@/assets/data.json'
 import params from '@/params'
 import { seenHelp, userParams } from '@/store'
 import { computed, onMounted, ref, watch } from 'vue'
+import type { School } from '@/types';
 
 function dumpHash() {
   return JSON.stringify(userParams.value)
@@ -153,7 +154,7 @@ const schoolModalOpen = ref(false)
               <AListItemMeta>
                 <template #title>
                   <div style="display: flex; width: 100%">
-                    <span style="font-size: 20px">{{ item.name }}</span>
+                    <span style="font-size: 18px">{{ item.name }}</span>
                     <span style="flex: 1 0 0"></span>
                     <span
                       style="cursor: pointer"
@@ -197,7 +198,7 @@ const schoolModalOpen = ref(false)
           class="school-list"
           :data-source="sortedSchoolsData"
           :split="false"
-          :row-key="(item) => item.slug"
+          :row-key="(item: School) => item.slug"
         >
           <template #renderItem="{ item, index }">
             <AListItem class="school-list-item">
