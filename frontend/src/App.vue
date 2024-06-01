@@ -2,7 +2,34 @@
 import data from '@/assets/data.json'
 import params from '@/params'
 import { seenHelp, userParams } from '@/store'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+
+function dumpHash() {
+  return JSON.stringify(userParams.value)
+}
+
+function loadHash(hash: string) {
+  try {
+    const parsed = JSON.parse(hash)
+    userParams.value = parsed
+  } catch (e) {
+    console.error('Error parsing hash:', e)
+  }
+}
+
+onMounted(() => {
+  if (location.hash.length > 1) {
+    loadHash(decodeURIComponent(location.hash.slice(1)))
+  }
+})
+
+watch(
+  userParams,
+  () => {
+    location.hash = '#' + dumpHash()
+  },
+  { deep: true }
+)
 
 const helpModalOpen = computed(() => {
   return !seenHelp.value
