@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Niche Scraper
 // @namespace    https://github.com/david-why/mcr
-// @version      1.0.3
+// @version      1.1.0
 // @description  Scrape data from Niche
 // @author       david-why
 // @match        https://www.niche.com/*
@@ -41,6 +41,8 @@ const ST_RANKINGS = 3;
 const ST_ADMISSIONS = 4;
 // At the college academics page
 const ST_ACADEMICS = 5;
+// Fixing missing parts of data
+const ST_FIXING = 6;
 
 console.log("Niche Scraper loaded");
 
@@ -113,6 +115,23 @@ function getPreloadedState() {
   }
 }
 
+function fixData() {
+  const schools = GM_getValue("schools", []);
+  let i = 0;
+  for (const school of schools) {
+    for (const detail of ["rankings", "admissions", "academics"]) {
+      if (school[detail] === null) {
+        console.log(`Missing ${detail} data for ${school.name}`);
+        setStatus({ status: ST_FIXING, detail, index: i });
+        navigate(`/colleges/${school.entity_data.url}/${detail}/`);
+        return true;
+      }
+    }
+    i++;
+  }
+  return false;
+}
+
 GM_registerMenuCommand("Start scraping", () => {
   clearSchools();
   const state = getPreloadedState();
@@ -141,6 +160,12 @@ GM_registerMenuCommand("Export data", () => {
   a.download = "niche.json";
   a.click();
   URL.revokeObjectURL(url);
+});
+
+GM_registerMenuCommand("Fix data", () => {
+  if (!fixData()) {
+    alert("No fixing needed!");
+  }
 });
 
 GM_registerMenuCommand("Download __PRELOADED_STATE__ (debug)", () => {
@@ -186,8 +211,10 @@ GM_registerMenuCommand("Import data (debug)", () => {
       if (status.index >= data.limit) {
         status.page++;
         if (status.page > status.pages) {
-          clearStatus();
-          alert("Scraping finished!!!");
+          if (!fixData()) {
+            clearStatus();
+            alert("Scraping finished!!!");
+          }
           return;
         }
         status.index = 0;
@@ -237,6 +264,19 @@ GM_registerMenuCommand("Import data (debug)", () => {
       status.index++;
       setStatus(status);
       navigate(status.pathname + "?page=" + status.page);
+      break;
+    }
+    case ST_FIXING: {
+      const state = getPreloadedState();
+      const content = state.profile.content;
+      const schools = GM_getValue("schools", []);
+      const school = schools[status.index];
+      school[status.detail] = content;
+      GM_setValue("schools", schools);
+      if (!fixData()) {
+        clearStatus();
+        alert("Scraping finished!!!");
+      }
       break;
     }
   }
