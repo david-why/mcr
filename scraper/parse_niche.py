@@ -30,6 +30,7 @@ FIELDS = [
     'graduation_rate',
     'employed_after_graduation',
     # rankings page
+    'major_rankings',
     'rankings',
     # admissions page
     'early_decision',
@@ -109,6 +110,7 @@ def parse_school(data):
                 'value'
             ]
     # rankings page
+    result['major_rankings'] = {}
     result['rankings'] = {}
     rankings_page = data['rankings']
     for block in rankings_page['blocks']:
@@ -120,10 +122,29 @@ def parse_school(data):
                 if group['title'] != 'National':
                     continue
                 for badge in group['badges']:
-                    result['rankings'][badge['vanityURL']] = {
-                        'ordinal': badge['ordinal'],
-                        'total': badge['total'],
-                    }
+                    key = badge['vanityURL']
+                    if key.startswith('best-colleges-for-'):
+                        # key = key[18:].replace('-', ' ').title()
+                        # majors.add(key)
+                        name = (
+                            badge['display']
+                            .removeprefix('Best Colleges for ')
+                            .removesuffix(' in America')
+                        )
+                        result['major_rankings'][key] = {
+                            'ordinal': badge['ordinal'],
+                            'total': badge['total'],
+                        }
+                        major_rankings[key] = {'total': badge['total'], 'name': name}
+                    else:
+                        result['rankings'][badge['vanityURL']] = {
+                            'ordinal': badge['ordinal'],
+                            'total': badge['total'],
+                        }
+                        rankings[key] = {
+                            'total': badge['total'],
+                            'name': badge['display'],
+                        }
     # admissions page
     admissions_page = data['admissions']
     for block in admissions_page['blocks']:
@@ -172,13 +193,23 @@ with open(sys.argv[1], 'r') as f:
     schools = data['schools']
     pages = data['pages']
 
-output = []
+result = []
+majors = set()
+rankings = {}
+major_rankings = {}
 
 for i, school in enumerate(schools):
     print('parsing school', i, school['entity_data']['name'])
-    output.append(parse_school(school))
+    result.append(parse_school(school))
 
 print('writing data')
+
+output = {
+    'schools': result,
+    'majors': sorted(majors),
+    'rankings': rankings,
+    'major_rankings': major_rankings,
+}
 
 with open(sys.argv[2], 'w') as f:
     json.dump(output, f, indent=4)
