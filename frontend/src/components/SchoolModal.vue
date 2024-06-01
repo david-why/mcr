@@ -61,7 +61,7 @@ const graduationRate = computed(() => {
 </script>
 
 <template>
-  <AModal v-model:open="isOpen" class="school-modal" :footer="false" style="width: 100vw">
+  <AModal centered v-model:open="isOpen" class="school-modal" :footer="false" style="width: 100vw">
     <h1>{{ school.name }}</h1>
     <p>
       {{ school.character }} | Niche Grade {{ nicheGrade }} | {{ school.location }} |
@@ -85,7 +85,7 @@ const graduationRate = computed(() => {
       <DetailCol name="Graduation Rate" :value="graduationRate"></DetailCol>
     </ARow>
     <ARow>
-      <ACol :span="24" style="height: 500px; max-height: 50vh">
+      <ACol :span="24" style="height: 350px">
         <SchoolMap :school="school"></SchoolMap>
       </ACol>
     </ARow>

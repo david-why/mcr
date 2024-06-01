@@ -94,120 +94,114 @@ const sortedSchoolsData = computed(() => {
   return [...scoredSchools.value].sort((a, b) => b.score - a.score)
 })
 
+function truncate(text: string) {
+  if (!text) return ''
+  return text.length > 200 ? text.slice(0, 200) + '...' : text
+}
+
 const schoolModal = ref(data.schools[0])
 const schoolModalOpen = ref(false)
 </script>
 
 <template>
-  <ALayout style="min-height: 100vh">
-    <ALayoutHeader style="display: flex; align-items: center">
+  <div class="container">
+    <header class="layout-header">
       <IconR style="height: 32px; padding-right: 12px"></IconR>
       <h1 class="header-title" style="color: #fffc">My College Ranking</h1>
-    </ALayoutHeader>
-    <ALayout>
-      <ALayoutSider
-        class="layout-sider"
-        theme="light"
-        breakpoint="lg"
-        collapsed-width="0"
-        width="350"
-      >
-        <div style="padding: 0 12px">
-          <h2 style="margin: 10px 0">Choose your parameters!</h2>
-          <ASelect
-            :options="paramOptions"
-            v-model:value="addParamValue"
-            style="width: 100%"
-          ></ASelect>
-          <AList
-            :data-source="paramListData"
-            :locale="{ emptyText: 'No params added' }"
-            size="large"
-          >
-            <template #renderItem="{ item }">
-              <AListItem>
-                <AListItemMeta>
-                  <template #title>
-                    <div style="display: flex; width: 100%">
-                      <span>{{ item.name }}</span>
-                      <span style="flex: 1 0 0"></span>
-                      <span
-                        style="cursor: pointer"
-                        title="Delete this parameter"
-                        @click="deleteParam(item.id)"
-                        >&#x274C;</span
-                      >
+    </header>
+    <aside>
+      <div style="padding: 0 12px">
+        <h2 style="margin: 10px 0">Choose your parameters!</h2>
+        <ASelect
+          :options="paramOptions"
+          v-model:value="addParamValue"
+          style="width: 100%"
+        ></ASelect>
+        <AList :data-source="paramListData" :locale="{ emptyText: 'No params added' }" size="large">
+          <template #renderItem="{ item }">
+            <AListItem>
+              <AListItemMeta>
+                <template #title>
+                  <div style="display: flex; width: 100%">
+                    <span>{{ item.name }}</span>
+                    <span style="flex: 1 0 0"></span>
+                    <span
+                      style="cursor: pointer"
+                      title="Delete this parameter"
+                      @click="deleteParam(item.id)"
+                      >&#x274C;</span
+                    >
+                  </div>
+                  <!-- {{ item.name }} -->
+                </template>
+                <template #description>
+                  <div style="color: rgba(0, 0, 0, 0.88)">
+                    <p>Importance</p>
+                    <ASlider
+                      :min="0"
+                      :max="100"
+                      :step="1"
+                      :value="item.importance"
+                      @change="changeImportance(item.id, $event)"
+                    ></ASlider>
+                    <template v-for="arg in item.param.arguments" :key="arg.id">
+                      <p>{{ arg.name }}</p>
+                      <ASlider
+                        :min="arg.min"
+                        :max="arg.max"
+                        :step="arg.step || 1"
+                        :value="item.args[arg.id]"
+                        @change="changeArgument(item.id, arg.id, $event)"
+                      ></ASlider>
+                    </template>
+                  </div>
+                </template>
+              </AListItemMeta>
+            </AListItem>
+          </template>
+        </AList>
+      </div>
+    </aside>
+    <main>
+      <div style="padding: 24px; background: #fff">
+        <AList
+          class="school-list"
+          :data-source="sortedSchoolsData"
+          :split="false"
+          :row-key="(item) => item.slug"
+        >
+          <template #renderItem="{ item, index }">
+            <AListItem class="school-list-item">
+              <ACard
+                class="school-list-card"
+                hoverable
+                @click="(schoolModal = item), (schoolModalOpen = true)"
+              >
+                <ACardMeta :title="item.name + ' | Score: ' + item.score">
+                  <template #avatar>
+                    <div
+                      class="ranking-number"
+                      :style="{
+                        background:
+                          index < 3 ? ['#ffd700', '#a0a0a0', '#b36700'][index] : '#e2e2e2',
+                        color: index < 3 ? '#fff' : undefined
+                      }"
+                    >
+                      {{ index + 1 }}
                     </div>
-                    <!-- {{ item.name }} -->
                   </template>
                   <template #description>
-                    <div style="color: rgba(0, 0, 0, 0.88)">
-                      <p>Importance</p>
-                      <ASlider
-                        :min="0"
-                        :max="100"
-                        :step="1"
-                        :value="item.importance"
-                        @change="changeImportance(item.id, $event)"
-                      ></ASlider>
-                      <template v-for="arg in item.param.arguments" :key="arg.id">
-                        <p>{{ arg.name }}</p>
-                        <ASlider
-                          :min="arg.min"
-                          :max="arg.max"
-                          :step="arg.step || 1"
-                          :value="item.args[arg.id]"
-                          @change="changeArgument(item.id, arg.id, $event)"
-                        ></ASlider>
-                      </template>
-                    </div>
+                    <div class="school-description">{{ item.description }}</div>
+                    <div class="school-description-mobile">{{ truncate(item.description) }}</div>
                   </template>
-                </AListItemMeta>
-              </AListItem>
-            </template>
-          </AList>
-        </div>
-      </ALayoutSider>
-      <ALayoutContent style="padding: 30px">
-        <div style="padding: 24px; background: #fff">
-          <AList
-            class="school-list"
-            :data-source="sortedSchoolsData"
-            :split="false"
-            :row-key="(item) => item.slug"
-          >
-            <template #renderItem="{ item, index }">
-              <AListItem class="school-list-item">
-                <ACard
-                  class="school-list-card"
-                  hoverable
-                  @click="(schoolModal = item), (schoolModalOpen = true)"
-                >
-                  <ACardMeta
-                    :title="item.name + ' | Score: ' + item.score"
-                    :description="item.description"
-                  >
-                    <template #avatar>
-                      <div
-                        class="ranking-number"
-                        :style="{
-                          background:
-                            index < 3 ? ['#ffd700', '#a0a0a0', '#b36700'][index] : '#e2e2e2',
-                          color: index < 3 ? '#fff' : undefined
-                        }"
-                      >
-                        {{ index + 1 }}
-                      </div>
-                    </template>
-                  </ACardMeta>
-                </ACard>
-              </AListItem>
-            </template>
-          </AList>
-        </div>
-      </ALayoutContent>
-    </ALayout>
-  </ALayout>
+                </ACardMeta>
+              </ACard>
+            </AListItem>
+          </template>
+        </AList>
+      </div>
+    </main>
+  </div>
   <AModal
     title="Welcome to My College Ranking!"
     class="help-modal"
@@ -235,6 +229,31 @@ const schoolModalOpen = ref(false)
 </template>
 
 <style scoped>
+.container {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  grid-template-rows: 64px 1fr;
+  grid-template-areas: 'header header' 'aside main';
+}
+.layout-header {
+  grid-area: header;
+  width: 100%;
+  background: #001529;
+  display: flex;
+  align-items: center;
+  line-height: 64px;
+  font-size: 14px;
+  padding: 0 30px;
+}
+.header-title {
+  font-size: 24px;
+}
+.school-list-card {
+  width: 100%;
+}
+.school-list-card :deep(.ant-card-meta-title) {
+  white-space: normal;
+}
 .ranking-number {
   font-size: 24px;
   height: 54px;
@@ -261,5 +280,30 @@ const schoolModalOpen = ref(false)
 }
 .school-modal h2 {
   font-weight: 500;
+}
+.layout-content {
+  padding: 30px;
+}
+.school-list-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+@media screen and (max-width: 768px) {
+  .container {
+    grid-template-rows: 64px auto 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas: 'header' 'aside' 'main';
+  }
+  .layout-content {
+    padding: 0;
+  }
+  .school-description {
+    display: none;
+  }
+}
+@media screen and (min-width: 769px) {
+  .school-description-mobile {
+    display: none;
+  }
 }
 </style>
