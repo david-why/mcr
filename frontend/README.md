@@ -2,12 +2,14 @@
 
 This is the user-facing website section for the project. It is built with [Vue.js](https://vuejs.org/) and [Ant Design Vue](https://www.antdv.com/).
 
+The website is deployed to Render at [https://mcr.onrender.com/](https://mcr.onrender.com/). The deployment is triggered automatically when a commit is pushed to the `main` branch.
+
 ## Development
 
 1. Run `npm install` to install the dependencies.
 2. Run `npm run dev` to start the development server.
 
-If you want to enable the sharing feature, you can run the backend server and create a `.env` file in the root directory with the following content:
+If you want to enable the sharing feature, you can run the backend server (see [the backend README](../backend/README.md) for instructions) and create a `.env` file in the root directory with the following content:
 
 ```properties
 VITE_SHARE_BACKEND = http://localhost:7071/api
@@ -16,8 +18,6 @@ VITE_SHARE_BACKEND = http://localhost:7071/api
 Replace the URL with the URL of the backend server if it is different.
 
 ## Deployment
-
-The website is [deployed to Render](https://mcr.onrender.com/). The deployment is triggered automatically when a commit is pushed to the `main` branch.
 
 To deploy the website manually, run `npm run build` to build the website, and then upload the contents of the `dist` directory to the server.
 
