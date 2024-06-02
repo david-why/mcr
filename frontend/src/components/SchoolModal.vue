@@ -76,7 +76,12 @@ const satRange = computed(() => {
         tooltip="Number of undergrads enrolled full-time"
       ></DetailCol>
       <DetailCol name="Acceptance Rate" :value="acceptanceRate"></DetailCol>
-      <DetailCol name="SAT Range" :value="satRange" :tooltip="testRequirement"></DetailCol>
+      <DetailCol
+        name="SAT Range"
+        :value="satRange"
+        :tooltip="testRequirement"
+        tooltip-placement="detail"
+      ></DetailCol>
       <DetailCol
         name="Net Price"
         :value="netPrice"
