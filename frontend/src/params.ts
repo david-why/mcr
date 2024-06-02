@@ -17,6 +17,7 @@ import type { School } from '@/types'
 export declare interface Parameter {
   id: string
   name: string
+  code: string
   group: string
   arguments: {
     id: string
@@ -27,6 +28,12 @@ export declare interface Parameter {
     default?: number
   }[]
   func: (school: School, args: any) => number
+}
+
+export declare interface UserParameter {
+  id: string
+  importance: number // 0 to 100
+  args: { [id: string]: number }
 }
 
 declare type SchoolNumberKey = {
@@ -46,18 +53,12 @@ function normalizeValue(value: number, key: SchoolNumberKey) {
   return (value - min) / (max - min)
 }
 
-export declare interface UserParameter {
-  id: string
-  importance: number // 0 to 100
-  args: { [id: string]: number }
-}
-
 // Niche ranking
-function rankingParam(id: keyof typeof data.meta.rankings, name?: string): Parameter {
-  const defaultName = data.meta.rankings[id].name
+function rankingParam(id: keyof typeof data.meta.rankings, name: string, code: string): Parameter {
   return {
     id,
-    name: name === undefined ? defaultName : name,
+    name,
+    code,
     group: 'Rankings',
     arguments: [],
     func: (school: School) => {
@@ -72,11 +73,12 @@ function rankingParam(id: keyof typeof data.meta.rankings, name?: string): Param
 }
 
 // Niche major ranking
-function majorRankingParam(id: keyof typeof data.meta.major_rankings): Parameter {
+function majorRankingParam(id: keyof typeof data.meta.major_rankings, code: string): Parameter {
   const name = data.meta.major_rankings[id].name
   return {
     id,
     name,
+    code,
     group: 'Majors',
     arguments: [],
     func: (school: School) => {
@@ -94,6 +96,7 @@ const params: Parameter[] = [
   {
     id: 'sat-range',
     name: 'SAT score',
+    code: 'st',
     group: 'General',
     arguments: [{ id: 'sat', name: 'SAT Score', min: 400, max: 1600, step: 10, default: 1000 }],
     func: (school: School, { sat }: { sat: number }) => {
@@ -108,6 +111,7 @@ const params: Parameter[] = [
   {
     id: 'northern',
     name: 'Northern schools',
+    code: 'no',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -117,6 +121,7 @@ const params: Parameter[] = [
   {
     id: 'southern',
     name: 'Southern schools',
+    code: 'so',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -126,6 +131,7 @@ const params: Parameter[] = [
   {
     id: 'eastern',
     name: 'Eastern schools',
+    code: 'ea',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -135,6 +141,7 @@ const params: Parameter[] = [
   {
     id: 'western',
     name: 'Western schools',
+    code: 'we',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -144,6 +151,7 @@ const params: Parameter[] = [
   {
     id: 'large',
     name: 'Large schools',
+    code: 'la',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -153,6 +161,7 @@ const params: Parameter[] = [
   {
     id: 'small',
     name: 'Small schools',
+    code: 'sm',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -162,6 +171,7 @@ const params: Parameter[] = [
   {
     id: 'student-faculty-ratio',
     name: 'Low student-faculty ratio',
+    code: 'sf',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -171,6 +181,7 @@ const params: Parameter[] = [
   {
     id: 'earnings',
     name: 'High earnings after school',
+    code: 'en',
     group: 'General',
     arguments: [],
     func: (school: School) => {
@@ -180,28 +191,61 @@ const params: Parameter[] = [
   {
     id: 'employment',
     name: 'High employment after school',
+    code: 'em',
     group: 'General',
     arguments: [],
     func: (school: School) => {
       return normalizeValue(school.employed_after_graduation, 'employed_after_graduation')
     }
   },
-  rankingParam('best-colleges', 'Niche Overall Rank'),
-  rankingParam('best-college-academics', 'Best Academics'),
-  rankingParam('best-college-athletics', 'Best Athletics'),
-  rankingParam('best-college-campuses', 'Best Campuses'),
-  rankingParam('best-college-dorms', 'Best Dorms'),
-  rankingParam('best-college-food', 'Best Food'),
-  rankingParam('best-greek-life-colleges', 'Best Greek Life'),
-  rankingParam('best-college-professors', 'Best Professors'),
-  rankingParam('best-student-life', 'Best Student Life'),
-  rankingParam('most-conservative-colleges', 'Most Conservative'),
-  rankingParam('most-liberal-colleges', 'Most Liberal'),
-  rankingParam('top-party-schools', 'Top Party Schools')
+  rankingParam('best-colleges', 'Niche Overall Rank', 'ov'),
+  rankingParam('best-college-academics', 'Best Academics', 'ac'),
+  rankingParam('best-college-athletics', 'Best Athletics', 'at'),
+  rankingParam('best-college-campuses', 'Best Campuses', 'ca'),
+  rankingParam('best-college-dorms', 'Best Dorms', 'do'),
+  rankingParam('best-college-food', 'Best Food', 'fo'),
+  rankingParam('best-greek-life-colleges', 'Best Greek Life', 'gl'),
+  rankingParam('best-college-professors', 'Best Professors', 'pr'),
+  rankingParam('best-student-life', 'Best Student Life', 'sl'),
+  rankingParam('most-conservative-colleges', 'Most Conservative', 'co'),
+  rankingParam('most-liberal-colleges', 'Most Liberal', 'li'),
+  rankingParam('top-party-schools', 'Top Party Schools', 'pa'),
+  majorRankingParam('best-colleges-for-history', 'hi'),
+  majorRankingParam('best-colleges-for-art', 'ar'),
+  majorRankingParam('best-colleges-for-religious-studies', 're'),
+  majorRankingParam('best-colleges-for-film', 'fi'),
+  majorRankingParam('best-colleges-for-psychology', 'ps'),
+  majorRankingParam('best-colleges-for-economics', 'ec'),
+  majorRankingParam('best-colleges-for-international-relations', 'in'),
+  majorRankingParam('best-colleges-for-global-studies', 'gs'),
+  majorRankingParam('best-colleges-for-biology', 'bi'),
+  majorRankingParam('best-colleges-for-english', 'eg'),
+  majorRankingParam('best-colleges-for-political-science', 'po'),
+  majorRankingParam('best-colleges-for-environmental-science', 'es'),
+  majorRankingParam('best-colleges-for-philosophy', 'ph'),
+  majorRankingParam('best-colleges-for-math', 'ma'),
+  majorRankingParam('best-colleges-for-engineering', 'ei'),
+  majorRankingParam('best-colleges-for-anthropology', 'an'),
+  majorRankingParam('best-colleges-for-chemistry', 'cm'),
+  majorRankingParam('best-colleges-for-physics', 'py'),
+  majorRankingParam('best-colleges-for-theater', 'pe'),
+  majorRankingParam('best-colleges-for-architecture', 'ah'),
+  majorRankingParam('best-colleges-for-computer-science', 'cs'),
+  majorRankingParam('best-colleges-for-public-policy', 'pp'),
+  majorRankingParam('best-colleges-for-communications', 'cu'),
+  majorRankingParam('best-colleges-for-business', 'bu'),
+  majorRankingParam('best-colleges-for-accounting', 'ao'),
+  majorRankingParam('best-colleges-for-criminal-justice', 'cr'),
+  majorRankingParam('best-colleges-for-nursing', 'nu'),
+  majorRankingParam('best-colleges-for-public-health', 'pu'),
+  majorRankingParam('best-colleges-for-design', 'de'),
+  majorRankingParam('best-colleges-for-physical-therapy', 'ki'),
+  majorRankingParam('best-colleges-for-sports-management', 'sp'),
+  majorRankingParam('best-colleges-for-music', 'mu'),
+  majorRankingParam('best-colleges-for-education', 'ed'),
+  majorRankingParam('best-colleges-for-information-technology', 'it'),
+  majorRankingParam('best-colleges-for-agricultural-sciences', 'ag'),
+  majorRankingParam('best-colleges-for-culinary-arts', 'cl')
 ]
-
-for (const id of Object.keys(data.meta.major_rankings).sort((a, b) => a.localeCompare(b))) {
-  params.push(majorRankingParam(id as keyof typeof data.meta.major_rankings))
-}
 
 export default params

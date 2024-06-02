@@ -10,7 +10,8 @@ const item = defineModel<UserParameter>({ required: true })
 
 function deleteParam(id: string) {
   if (!props.deletable) return
-  userParams.value = userParams.value.filter((p) => p.id !== id)
+  const index = userParams.value.findIndex((p) => p.id === id)
+  userParams.value.splice(index, 1)
 }
 
 function changeImportance(value: number | [number, number]) {

@@ -3,19 +3,40 @@ import data from '@/assets/data.json'
 import params, { type UserParameter } from '@/params'
 import { userParams } from '@/store'
 import type { School } from '@/types'
-import { computed, onMounted, ref, watch } from 'vue'
 import { notification } from 'ant-design-vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
-import { QuestionCircleOutlined, ExportOutlined } from '@ant-design/icons-vue'
+import { ExportOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 
 function dumpHash() {
-  return JSON.stringify(userParams.value)
+  let hash = ''
+  for (const userParam of userParams.value) {
+    const param = params.find((p) => p.id === userParam.id)!
+    hash += param.code + userParam.importance.toString(36)
+    for (const arg of param.arguments) {
+      hash += ',' + userParam.args[arg.id].toString(36)
+    }
+    hash += ';'
+  }
+  return hash.slice(0, -1)
 }
 
 function loadHash(hash: string) {
   try {
-    const parsed = JSON.parse(hash)
-    userParams.value = parsed
+    const parts = hash.split(';')
+    const newParams: UserParameter[] = []
+    for (const part of parts) {
+      const [part1, ...args] = part.split(',')
+      const code = part1.slice(0, 2)
+      const importance = part1.slice(2)
+      const param = params.find((p) => p.code === code)!
+      const newArgs: Record<string, number> = {}
+      for (let i = 0; i < param.arguments.length; i++) {
+        newArgs[param.arguments[i].id] = parseInt(args[i], 36)
+      }
+      newParams.push({ id: param.id, importance: parseInt(importance, 36), args: newArgs })
+    }
+    userParams.value = newParams
   } catch (e) {
     console.error('Error parsing hash:', e)
   }
