@@ -1,67 +1,80 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
-import params, { type UserParameter } from '@/params'
+import params, { dumpHash, loadHash, type UserParameter } from '@/params'
 import { userParams } from '@/store'
-import { notification } from 'ant-design-vue'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-import { ExportOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
+import { QuestionCircleOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
 
-function dumpHash() {
-  let hash = ''
-  for (const userParam of userParams.value) {
-    const param = params.find((p) => p.id === userParam.id)!
-    hash += param.code + userParam.importance.toString(36)
-    for (const arg of param.arguments) {
-      hash += ',' + userParam.args[arg.id].toString(36)
-    }
-    hash += ';'
-  }
-  return hash.slice(0, -1)
-}
+const hasBackend = import.meta.env.VITE_SHARE_BACKEND
 
-function loadHash(hash: string) {
-  try {
-    const parts = hash.split(';')
-    const newParams: UserParameter[] = []
-    for (const part of parts) {
-      const [part1, ...args] = part.split(',')
-      const code = part1.slice(0, 2)
-      const importance = part1.slice(2)
-      const param = params.find((p) => p.code === code)!
-      const newArgs: Record<string, number> = {}
-      for (let i = 0; i < param.arguments.length; i++) {
-        newArgs[param.arguments[i].id] = parseInt(args[i], 36)
-      }
-      newParams.push({ id: param.id, importance: parseInt(importance, 36), args: newArgs })
-    }
-    userParams.value = newParams
-  } catch (e) {
-    console.error('Error parsing hash:', e)
-  }
+// function dumpHash() {
+//   let hash = ''
+//   for (const userParam of userParams.value) {
+//     const param = params.find((p) => p.id === userParam.id)!
+//     hash += param.code + userParam.importance.toString(36)
+//     for (const arg of param.arguments) {
+//       hash += ',' + userParam.args[arg.id].toString(36)
+//     }
+//     hash += ';'
+//   }
+//   return hash.slice(0, -1)
+// }
+
+// function loadHash(hash: string) {
+//   if (!hash) {
+//     userParams.value = []
+//     return
+//   }
+//   try {
+//     const parts = hash.split(';')
+//     const newParams: UserParameter[] = []
+//     for (const part of parts) {
+//       const [part1, ...args] = part.split(',')
+//       const code = part1.slice(0, 2)
+//       const importance = part1.slice(2)
+//       const param = params.find((p) => p.code === code)!
+//       const newArgs: Record<string, number> = {}
+//       for (let i = 0; i < param.arguments.length; i++) {
+//         newArgs[param.arguments[i].id] = parseInt(args[i], 36)
+//       }
+//       newParams.push({ id: param.id, importance: parseInt(importance, 36), args: newArgs })
+//     }
+//     userParams.value = newParams
+//   } catch (e) {
+//     console.error('Error parsing hash:', e)
+//   }
+// }
+
+const currentHash = ref('')
+
+function onHashChange() {
+  if (location.hash === currentHash.value) return
+  currentHash.value = location.hash
+  userParams.value = loadHash(decodeURIComponent(location.hash.slice(1)))
 }
 
 onMounted(() => {
   if (location.hash.length > 1) {
-    loadHash(decodeURIComponent(location.hash.slice(1)))
+    userParams.value = loadHash(decodeURIComponent(location.hash.slice(1)))
   }
+  window.addEventListener('hashchange', onHashChange)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('hashchange', onHashChange)
 })
 
 watch(
   userParams,
-  () => {
-    location.hash = '#' + dumpHash()
+  (value) => {
+    location.hash = '#' + dumpHash(value)
   },
   { deep: true }
 )
 
 function shareRanking() {
-  if (!navigator || !navigator.clipboard) {
-    return notification.warning({ message: 'Copy to clipboard is not supported on your browser' })
-  }
-  navigator.clipboard.writeText(location.href).then(() => {
-    notification.success({ message: 'Link copied to clipboard!' })
-  })
+  shareDrawerOpen.value = true
 }
 
 const unchosenParams = computed(() => {
@@ -132,6 +145,7 @@ const sortedSchools = computed(() => {
 })
 
 const helpModalOpen = ref(false)
+const shareDrawerOpen = ref(false)
 </script>
 
 <template>
@@ -166,8 +180,8 @@ const helpModalOpen = ref(false)
           </template>
         </AList>
         <div style="text-align: right">
-          <AButton v-if="userParams.length" @click="shareRanking">
-            <ExportOutlined></ExportOutlined> Share your ranking!
+          <AButton v-if="hasBackend" @click="shareRanking">
+            <ShareAltOutlined></ShareAltOutlined> Share rankings!
           </AButton>
         </div>
       </div>
@@ -186,6 +200,7 @@ const helpModalOpen = ref(false)
   </div>
   <IntroModal></IntroModal>
   <HelpModal v-model:open="helpModalOpen"></HelpModal>
+  <ShareDrawer v-if="hasBackend" v-model:open="shareDrawerOpen"></ShareDrawer>
 </template>
 
 <style scoped>
