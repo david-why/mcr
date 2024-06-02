@@ -25,8 +25,9 @@ declare module 'vue' {
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     DetailCol: typeof import('./src/components/DetailCol.vue')['default']
     IconR: typeof import('./src/components/icons/IconR.vue')['default']
+    IntroModal: typeof import('./src/components/IntroModal.vue')['default']
+    SchoolCard: typeof import('./src/components/SchoolCard.vue')['default']
     SchoolMap: typeof import('./src/components/SchoolMap.vue')['default']
     SchoolModal: typeof import('./src/components/SchoolModal.vue')['default']
-    SliderInput: typeof import('./src/components/SliderInput.vue')['default']
   }
 }

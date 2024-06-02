@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
 import params from '@/params'
-import { seenHelp, userParams } from '@/store'
+import { userParams } from '@/store'
+import type { School } from '@/types'
 import { computed, onMounted, ref, watch } from 'vue'
-import type { School } from '@/types';
 
 function dumpHash() {
   return JSON.stringify(userParams.value)
@@ -31,10 +31,6 @@ watch(
   },
   { deep: true }
 )
-
-const helpModalOpen = computed(() => {
-  return !seenHelp.value
-})
 
 const unchosenParams = computed(() => {
   return params.filter((param) => !userParams.value.find((p) => p.id === param.id))
@@ -122,11 +118,6 @@ const sortedSchoolsData = computed(() => {
   return [...scoredSchools.value].sort((a, b) => b.score - a.score)
 })
 
-function truncate(text: string) {
-  if (!text) return ''
-  return text.length > 200 ? text.slice(0, 200) + '...' : text
-}
-
 const schoolModal = ref(data.schools[0])
 const schoolModalOpen = ref(false)
 </script>
@@ -153,7 +144,7 @@ const schoolModalOpen = ref(false)
             <AListItem>
               <AListItemMeta>
                 <template #title>
-                  <div style="display: flex; width: 100%">
+                  <div style="display: flex; width: 100%; align-items: center">
                     <span style="font-size: 18px">{{ item.name }}</span>
                     <span style="flex: 1 0 0"></span>
                     <span
@@ -202,60 +193,19 @@ const schoolModalOpen = ref(false)
         >
           <template #renderItem="{ item, index }">
             <AListItem class="school-list-item">
-              <ACard
-                class="school-list-card"
-                hoverable
+              <SchoolCard
+                :school="item"
+                :index="index"
+                :score="item.score"
                 @click="(schoolModal = item), (schoolModalOpen = true)"
-              >
-                <ACardMeta>
-                  <template #title><span style="font-size: 18px">{{ item.name }} // Score: {{ item.score }}</span></template>
-                  <template #avatar>
-                    <div
-                      class="ranking-number"
-                      :style="{
-                        background:
-                          index < 3 ? ['#ffd700', '#a0a0a0', '#b36700'][index] : '#e2e2e2',
-                        color: index < 3 ? '#fff' : undefined
-                      }"
-                    >
-                      {{ index + 1 }}
-                    </div>
-                  </template>
-                  <template #description>
-                    <div class="school-description">{{ item.description }}</div>
-                    <div class="school-description-mobile">{{ truncate(item.description) }}</div>
-                  </template>
-                </ACardMeta>
-              </ACard>
+              ></SchoolCard>
             </AListItem>
           </template>
         </AList>
       </div>
     </main>
   </div>
-  <AModal
-    title="Welcome to My College Ranking!"
-    class="help-modal"
-    style="width: 600px"
-    :open="helpModalOpen"
-    @cancel="seenHelp = true"
-  >
-    <p>
-      You might have heard of college rankings like the U.S. News and World Report, which use a set
-      of criteria to rank colleges. But what if you could rank colleges based on your own
-      preferences?
-    </p>
-    <p>
-      That's where My College Ranking comes in. You can choose from a variety of parameters
-      (criteria), such as location, size, cost, and more. You can adjust the importance of each
-      parameter and the arguments for each parameter. The colleges will be ranked based on your
-      preferences.
-    </p>
-    <p>So go ahead and add some parameters on the left to get started!</p>
-    <template #footer>
-      <AButton type="primary" @click="seenHelp = true">Let's go!</AButton>
-    </template>
-  </AModal>
+  <IntroModal></IntroModal>
   <SchoolModal :school="schoolModal" v-model:open="schoolModalOpen"></SchoolModal>
 </template>
 
@@ -286,50 +236,14 @@ const schoolModalOpen = ref(false)
   padding-left: 0;
   padding-right: 0;
 }
-.school-list-item:nth-child(2n + 1) .school-list-card {
+.school-list-item:nth-child(2n + 1) :deep(.school-list-card) {
   background: #f5f5f5;
-}
-.school-list-card {
-  width: 100%;
-}
-.school-list-card :deep(.ant-card-meta-title) {
-  white-space: normal;
-}
-.ranking-number {
-  font-size: 24px;
-  height: 54px;
-  width: 54px;
-  line-height: 54px;
-  border-radius: 27px;
-  text-align: center;
-  font-weight: bold;
-}
-.school-list :deep(.ant-list-item-meta) {
-  align-items: stretch;
-}
-.school-list :deep(.ant-list-item-meta-content) {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 100%;
-}
-/* Help modal */
-.help-modal p {
-  margin-bottom: 8px;
 }
 @media screen and (max-width: 768px) {
   .container {
     grid-template-rows: 64px auto 1fr;
     grid-template-columns: 1fr;
     grid-template-areas: 'header' 'aside' 'main';
-  }
-  .school-description {
-    display: none;
-  }
-}
-@media screen and (min-width: 769px) {
-  .school-description-mobile {
-    display: none;
   }
 }
 </style>

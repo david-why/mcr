@@ -83,7 +83,7 @@ const satRange = computed(() => {
       ></DetailCol>
     </ARow>
     <ARow>
-      <ACol :span="24" style="height: 350px">
+      <ACol :span="24" style="height: 400px">
         <SchoolMap :school="school"></SchoolMap>
       </ACol>
     </ARow>
