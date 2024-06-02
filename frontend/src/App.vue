@@ -2,7 +2,6 @@
 import data from '@/assets/data.json'
 import params, { type UserParameter } from '@/params'
 import { userParams } from '@/store'
-import type { School } from '@/types'
 import { notification } from 'ant-design-vue'
 import { computed, onMounted, ref, watch } from 'vue'
 
@@ -158,8 +157,12 @@ const helpModalOpen = ref(false)
           size="large"
         >
           <template #renderItem="{ item }">
-            <!-- this hack is needed because `item` is readonly here -->
-            <UserParamItem :model-value="item" @update:model-value="updateItem"></UserParamItem>
+            <!-- this hack (instead of v-model) is needed because `item` is readonly -->
+            <UserParamItem
+              :model-value="item"
+              @update:model-value="updateItem"
+              :key="item.id"
+            ></UserParamItem>
           </template>
         </AList>
         <div style="text-align: right">
@@ -171,14 +174,9 @@ const helpModalOpen = ref(false)
     </aside>
     <main>
       <div style="padding: 24px; background: #fff">
-        <AList
-          class="school-list"
-          :data-source="sortedSchools"
-          :split="false"
-          :row-key="(item: School) => item.slug"
-        >
+        <AList class="school-list" :data-source="sortedSchools" :split="false">
           <template #renderItem="{ item, index }">
-            <AListItem class="school-list-item">
+            <AListItem class="school-list-item" :key="item.slug">
               <SchoolCard :school="item" :index="index" :score="item.score"></SchoolCard>
             </AListItem>
           </template>
