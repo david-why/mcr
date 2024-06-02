@@ -3,8 +3,6 @@
 import json
 import sys
 
-import requests
-
 FIELDS = [
     # search page
     'latitude',
@@ -144,8 +142,6 @@ def parse_school(data, idx):
                     if key == 'best-colleges':
                         continue
                     if key.startswith('best-colleges-for-'):
-                        # key = key[18:].replace('-', ' ').title()
-                        # majors.add(key)
                         name = (
                             badge['display']
                             .removeprefix('Best Colleges for ')
@@ -218,7 +214,6 @@ with open(sys.argv[1], 'r') as f:
     pages = data['pages']
 
 result = []
-majors = set()
 rankings = {'best-colleges': {'total': len(schools), 'name': 'Best Colleges'}}
 major_rankings = {}
 
@@ -230,11 +225,8 @@ print('writing data')
 
 output = {
     'schools': result,
-    'majors': sorted(majors),
-    'rankings': rankings,
-    'major_rankings': major_rankings,
+    'meta': {'rankings': rankings, 'major_rankings': major_rankings},
 }
 
 with open(sys.argv[2], 'w') as f:
     json.dump(output, f, indent=4)
-    # json.dump(output, f, separators=(',', ':'))

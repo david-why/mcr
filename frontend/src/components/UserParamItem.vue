@@ -44,7 +44,7 @@ const param = params.find((p) => p.id === item.value.id)!
           <ASlider
             :min="0"
             :max="100"
-            :step="1"
+            :step="5"
             :value="item.importance"
             @change="changeImportance"
           ></ASlider>

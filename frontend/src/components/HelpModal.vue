@@ -21,8 +21,9 @@ const userParam = ref({
     </p>
     <p>
       You can add <b>parameters</b> that are important to you and adjust their importance and
-      values. For example, this is a parameter that ranks schools based on your SAT score and the
-      school's students' SAT score range:
+      values. Each parameter is responsible for ranking schools in one aspect. For example, this is
+      a parameter that ranks schools based on your SAT score and the school's students' SAT score
+      range:
     </p>
     <AList :data-source="[0]" style="max-width: 350px">
       <template #renderItem>
@@ -34,8 +35,12 @@ const userParam = ref({
       </template>
     </AList>
     <p>
-      The application will calculate a score for each school based on your parameters and show you
-      the best schools, according to your own ranking system.
+      You can adjust the <b>importance</b> of each parameter to determine how much this parameter is
+      considered among the others.
+    </p>
+    <p>
+      The website will calculate a score for each school based on your parameters and show you the
+      best schools, according to your own ranking system.
     </p>
     <p>
       After you add your parameters, you will see a list of schools to the right. You can click on
