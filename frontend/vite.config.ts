@@ -25,11 +25,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          antdv: ['ant-design-vue'],
-          data: ['@/assets/data']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('ant-design-vue')) return 'antdv'
+            if (id.includes('leaflet')) return 'leaflet'
+          }
+          if (id.endsWith('assets/data.json')) return 'data'
         }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1024
   }
 })

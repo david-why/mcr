@@ -11,10 +11,6 @@ declare module 'vue' {
     ACard: typeof import('ant-design-vue/es')['Card']
     ACardMeta: typeof import('ant-design-vue/es')['CardMeta']
     ACol: typeof import('ant-design-vue/es')['Col']
-    ALayout: typeof import('ant-design-vue/es')['Layout']
-    ALayoutContent: typeof import('ant-design-vue/es')['LayoutContent']
-    ALayoutHeader: typeof import('ant-design-vue/es')['LayoutHeader']
-    ALayoutSider: typeof import('ant-design-vue/es')['LayoutSider']
     AList: typeof import('ant-design-vue/es')['List']
     AListItem: typeof import('ant-design-vue/es')['ListItem']
     AListItemMeta: typeof import('ant-design-vue/es')['ListItemMeta']
@@ -29,5 +25,6 @@ declare module 'vue' {
     SchoolCard: typeof import('./src/components/SchoolCard.vue')['default']
     SchoolMap: typeof import('./src/components/SchoolMap.vue')['default']
     SchoolModal: typeof import('./src/components/SchoolModal.vue')['default']
+    UserParamItem: typeof import('./src/components/UserParamItem.vue')['default']
   }
 }

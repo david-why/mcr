@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
-import params from '@/params'
+import params, { type UserParameter } from '@/params'
 import { userParams } from '@/store'
 import type { School } from '@/types'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -56,17 +56,6 @@ const paramOptions = computed(() => {
   )
 })
 
-const paramListData = computed(() => {
-  return userParams.value.map((param) => {
-    const paramData = params.find((p) => p.id === param.id)
-    return {
-      ...param,
-      name: paramData?.name,
-      param: paramData
-    }
-  })
-})
-
 const addParamValue = ref('')
 
 watch(addParamValue, (value) => {
@@ -80,17 +69,9 @@ watch(addParamValue, (value) => {
   }
 })
 
-function deleteParam(id: string) {
-  const index = userParams.value.findIndex((param) => param.id === id)
-  userParams.value.splice(index, 1)
-}
-
-function changeImportance(id: string, value: number | [number, number]) {
-  userParams.value.find((param) => param.id === id)!.importance = value as number
-}
-
-function changeArgument(id: string, argId: string, value: number | [number, number]) {
-  userParams.value.find((param) => param.id === id)!.args[argId] = value as number
+function updateItem(item: UserParameter) {
+  const index = userParams.value.findIndex((p) => p.id === item.id)
+  userParams.value[index] = item
 }
 
 const scoreMultiplier = computed(() => {
@@ -114,11 +95,11 @@ const scoredSchools = computed(() => {
   }))
 })
 
-const sortedSchoolsData = computed(() => {
+const sortedSchools = computed(() => {
   return [...scoredSchools.value].sort((a, b) => b.score - a.score)
 })
 
-const schoolModal = ref(data.schools[0])
+const chosenSchool = ref(data.schools[0])
 const schoolModalOpen = ref(false)
 </script>
 
@@ -136,49 +117,13 @@ const schoolModalOpen = ref(false)
           style="width: 100%; margin-top: 36px"
         ></ASelect>
         <AList
-          :data-source="paramListData"
+          :data-source="userParams"
           :locale="{ emptyText: 'Choose your parameters above!' }"
           size="large"
         >
           <template #renderItem="{ item }">
-            <AListItem>
-              <AListItemMeta>
-                <template #title>
-                  <div style="display: flex; width: 100%; align-items: center">
-                    <span style="font-size: 18px">{{ item.name }}</span>
-                    <span style="flex: 1 0 0"></span>
-                    <span
-                      style="cursor: pointer"
-                      title="Delete this parameter"
-                      @click="deleteParam(item.id)"
-                      >&#x274C;</span
-                    >
-                  </div>
-                </template>
-                <template #description>
-                  <div style="color: rgba(0, 0, 0, 0.88)">
-                    <p>Importance</p>
-                    <ASlider
-                      :min="0"
-                      :max="100"
-                      :step="1"
-                      :value="item.importance"
-                      @change="changeImportance(item.id, $event)"
-                    ></ASlider>
-                    <template v-for="arg in item.param.arguments" :key="arg.id">
-                      <p>{{ arg.name }}</p>
-                      <ASlider
-                        :min="arg.min"
-                        :max="arg.max"
-                        :step="arg.step || 1"
-                        :value="item.args[arg.id]"
-                        @change="changeArgument(item.id, arg.id, $event)"
-                      ></ASlider>
-                    </template>
-                  </div>
-                </template>
-              </AListItemMeta>
-            </AListItem>
+            <!-- this hack is needed because `item` is readonly here -->
+            <UserParamItem :model-value="item" @update:model-value="updateItem"></UserParamItem>
           </template>
         </AList>
       </div>
@@ -187,7 +132,7 @@ const schoolModalOpen = ref(false)
       <div style="padding: 24px; background: #fff">
         <AList
           class="school-list"
-          :data-source="sortedSchoolsData"
+          :data-source="sortedSchools"
           :split="false"
           :row-key="(item: School) => item.slug"
         >
@@ -197,7 +142,7 @@ const schoolModalOpen = ref(false)
                 :school="item"
                 :index="index"
                 :score="item.score"
-                @click="(schoolModal = item), (schoolModalOpen = true)"
+                @click="(chosenSchool = item), (schoolModalOpen = true)"
               ></SchoolCard>
             </AListItem>
           </template>
@@ -206,7 +151,7 @@ const schoolModalOpen = ref(false)
     </main>
   </div>
   <IntroModal></IntroModal>
-  <SchoolModal :school="schoolModal" v-model:open="schoolModalOpen"></SchoolModal>
+  <SchoolModal :school="chosenSchool" v-model:open="schoolModalOpen"></SchoolModal>
 </template>
 
 <style scoped>
