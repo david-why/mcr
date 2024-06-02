@@ -26,10 +26,16 @@ const open = computed(() => {
       parameter and the arguments for each parameter. The colleges will be ranked based on your
       preferences.
     </p>
+    <p>
+      If you get confused or need help at any time, you can always click on the help button in the
+      top-right corner for a detailed description of how to use this website.
+    </p>
     <p>So go ahead and add some parameters on the left to get started!</p>
-    <p style="font-style: italic">
-      If you get confused, you can always click on the help button in the top-right corner for a
-      detailed description of how to use this website.
+    <p class="unimportant">
+      The data on this website comes from Niche.com, which provides information on colleges and
+      universities in the United States. This website is in no way affiliated with or endorsed by
+      Niche.com. The rankings and data are for reference only and should not be used as the sole
+      basis for making decisions.
     </p>
     <template #footer>
       <AButton type="primary" @click="seenHelp = true">Let's go!</AButton>
@@ -40,5 +46,9 @@ const open = computed(() => {
 <style scoped>
 .intro-modal p {
   margin-bottom: 8px;
+}
+.unimportant {
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
 }
 </style>

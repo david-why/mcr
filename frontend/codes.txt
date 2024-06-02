@@ -37,6 +37,7 @@ la
 li
 ma
 mu
+np
 no
 nu
 ov

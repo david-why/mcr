@@ -94,21 +94,6 @@ function majorRankingParam(id: keyof typeof data.meta.major_rankings, code: stri
 
 const params: Parameter[] = [
   {
-    id: 'sat-range',
-    name: 'SAT score',
-    code: 'st',
-    group: 'General',
-    arguments: [{ id: 'sat', name: 'SAT Score', min: 400, max: 1600, step: 10, default: 1000 }],
-    func: (school: School, { sat }: { sat: number }) => {
-      const satRange = school.sat_range
-      if (satRange === null) return 1
-      const [min, max] = satRange
-      if (sat > max) return 1
-      if (sat < min) return 0
-      return (sat - min) / (max - min)
-    }
-  },
-  {
     id: 'northern',
     name: 'Northern schools',
     code: 'no',
@@ -146,6 +131,31 @@ const params: Parameter[] = [
     arguments: [],
     func: (school: School) => {
       return 1 - normalizeValue(school.longitude, 'longitude')
+    }
+  },
+  {
+    id: 'sat-range',
+    name: 'SAT score',
+    code: 'st',
+    group: 'General',
+    arguments: [{ id: 'sat', name: 'SAT Score', min: 400, max: 1600, step: 10, default: 1000 }],
+    func: (school: School, { sat }: { sat: number }) => {
+      const satRange = school.sat_range
+      if (satRange === null) return 1
+      const [min, max] = satRange
+      if (sat > max) return 1
+      if (sat < min) return 0
+      return (sat - min) / (max - min)
+    }
+  },
+  {
+    id: 'net-price',
+    name: 'Low net price',
+    code: 'np',
+    group: 'General',
+    arguments: [],
+    func: (school: School) => {
+      return 1 - normalizeValue(school.net_price, 'net_price')
     }
   },
   {
