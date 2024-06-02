@@ -4,7 +4,9 @@ import params, { type UserParameter } from '@/params'
 import { userParams } from '@/store'
 import type { School } from '@/types'
 import { computed, onMounted, ref, watch } from 'vue'
-import { QuestionCircleOutlined } from '@ant-design/icons-vue'
+import { notification } from 'ant-design-vue'
+
+import { QuestionCircleOutlined, ExportOutlined } from '@ant-design/icons-vue'
 
 function dumpHash() {
   return JSON.stringify(userParams.value)
@@ -32,6 +34,15 @@ watch(
   },
   { deep: true }
 )
+
+function shareRanking() {
+  if (!navigator || !navigator.clipboard) {
+    return notification.warning({ message: 'Copy to clipboard is not supported on your browser' })
+  }
+  navigator.clipboard.writeText(location.href).then(() => {
+    notification.success({ message: 'Link copied to clipboard!' })
+  })
+}
 
 const unchosenParams = computed(() => {
   return params.filter((param) => !userParams.value.find((p) => p.id === param.id))
@@ -130,6 +141,11 @@ const helpModalOpen = ref(false)
             <UserParamItem :model-value="item" @update:model-value="updateItem"></UserParamItem>
           </template>
         </AList>
+        <div style="text-align: right">
+          <AButton v-if="userParams.length" @click="shareRanking">
+            <ExportOutlined></ExportOutlined> Share your ranking!
+          </AButton>
+        </div>
       </div>
     </aside>
     <main>
