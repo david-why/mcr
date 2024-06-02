@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import data from '@/assets/data.json'
+import { notification } from 'ant-design-vue'
+import { ref } from 'vue'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -11,6 +12,11 @@ const userParam = ref({
     sat: 1000
   }
 })
+
+function resetIntro() {
+  localStorage.setItem('seenHelp', 'false')
+  notification.success({ message: 'You will see the welcome dialog when you refresh!' })
+}
 </script>
 
 <template>
@@ -48,7 +54,8 @@ const userParam = ref({
     </p>
     <SchoolCard :school="data.schools[0]" :index="0" :score="100"></SchoolCard>
     <template #footer>
-      <AButton @click="open = false">Got it!</AButton>
+      <AButton @click="resetIntro">Reset welcome dialog</AButton>
+      <AButton type="primary" @click="open = false">Got it!</AButton>
     </template>
   </AModal>
 </template>
