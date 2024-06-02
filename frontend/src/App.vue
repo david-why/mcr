@@ -176,7 +176,7 @@ const helpModalOpen = ref(false)
       <div style="padding: 24px; background: #fff">
         <AList class="school-list" :data-source="sortedSchools" :split="false">
           <template #renderItem="{ item, index }">
-            <AListItem class="school-list-item" :key="item.slug">
+            <AListItem class="school-list-item">
               <SchoolCard :school="item" :index="index" :score="item.score"></SchoolCard>
             </AListItem>
           </template>
