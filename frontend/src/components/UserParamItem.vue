@@ -4,9 +4,12 @@ import params from '@/params'
 import { userParams } from '@/store'
 import { DeleteOutlined } from '@ant-design/icons-vue'
 
+const props = defineProps({ deletable: { type: Boolean, default: true } })
+
 const item = defineModel<UserParameter>({ required: true })
 
 function deleteParam(id: string) {
+  if (!props.deletable) return
   userParams.value = userParams.value.filter((p) => p.id !== id)
 }
 

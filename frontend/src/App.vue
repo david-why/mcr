@@ -4,6 +4,7 @@ import params, { type UserParameter } from '@/params'
 import { userParams } from '@/store'
 import type { School } from '@/types'
 import { computed, onMounted, ref, watch } from 'vue'
+import { QuestionCircleOutlined } from '@ant-design/icons-vue'
 
 function dumpHash() {
   return JSON.stringify(userParams.value)
@@ -99,15 +100,18 @@ const sortedSchools = computed(() => {
   return [...scoredSchools.value].sort((a, b) => b.score - a.score)
 })
 
-const chosenSchool = ref(data.schools[0])
-const schoolModalOpen = ref(false)
+const helpModalOpen = ref(false)
 </script>
 
 <template>
   <div class="container">
     <header class="layout-header">
       <IconR style="height: 32px; padding-right: 12px"></IconR>
-      <h1 class="header-title" style="color: #fffc">My College Ranking</h1>
+      <span class="header-title">My College Ranking</span>
+      <span style="flex: 1 0 0"></span>
+      <span style="cursor: pointer" @click="helpModalOpen = true">
+        <QuestionCircleOutlined style=""></QuestionCircleOutlined>
+      </span>
     </header>
     <aside>
       <div style="padding: 0 12px">
@@ -138,12 +142,7 @@ const schoolModalOpen = ref(false)
         >
           <template #renderItem="{ item, index }">
             <AListItem class="school-list-item">
-              <SchoolCard
-                :school="item"
-                :index="index"
-                :score="item.score"
-                @click="(chosenSchool = item), (schoolModalOpen = true)"
-              ></SchoolCard>
+              <SchoolCard :school="item" :index="index" :score="item.score"></SchoolCard>
             </AListItem>
           </template>
         </AList>
@@ -151,7 +150,7 @@ const schoolModalOpen = ref(false)
     </main>
   </div>
   <IntroModal></IntroModal>
-  <SchoolModal :school="chosenSchool" v-model:open="schoolModalOpen"></SchoolModal>
+  <HelpModal v-model:open="helpModalOpen"></HelpModal>
 </template>
 
 <style scoped>
@@ -170,11 +169,12 @@ const schoolModalOpen = ref(false)
   display: flex;
   align-items: center;
   line-height: 64px;
-  font-size: 14px;
   padding: 0 30px;
+  color: #fffc;
+  font-size: 24px;
 }
 .header-title {
-  font-size: 24px;
+  font-weight: bold;
 }
 /* School list */
 .school-list-item {

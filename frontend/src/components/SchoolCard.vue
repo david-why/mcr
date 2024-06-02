@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import type { School } from '@/types'
+import { ref } from 'vue'
 
 defineProps<{
   school: School
   index: number
   score: number
-}>()
-
-const emit = defineEmits<{
-  click: []
 }>()
 
 function truncate(text: string | null) {
@@ -17,8 +14,10 @@ function truncate(text: string | null) {
 }
 
 function onClick() {
-  emit('click')
+  modalOpen.value = true
 }
+
+const modalOpen = ref(false)
 </script>
 
 <template>
@@ -44,6 +43,7 @@ function onClick() {
       </template>
     </ACardMeta>
   </ACard>
+  <SchoolModal v-model:open="modalOpen" :school="school"></SchoolModal>
 </template>
 
 <style scoped>

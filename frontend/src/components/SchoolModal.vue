@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { School } from '@/types'
 import { computed } from 'vue'
+import { ExportOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps<{
   school: School
@@ -59,8 +60,13 @@ const satRange = computed(() => {
     <h1>{{ school.name }}</h1>
     <p>
       {{ school.character }} | {{ school.location }} |
-      <a :href="school.website" target="_blank">Official website</a> |
-      <a :href="`https://www.niche.com/colleges/${school.slug}/`" target="_blank">Niche.com page</a>
+      <a :href="school.website" target="_blank">
+        Official website <ExportOutlined></ExportOutlined>
+      </a>
+      |
+      <a :href="`https://www.niche.com/colleges/${school.slug}/`" target="_blank">
+        Niche.com page <ExportOutlined></ExportOutlined>
+      </a>
     </p>
     <ARow>
       <DetailCol name="Niche Overall Rank" :value="overallRank"></DetailCol>

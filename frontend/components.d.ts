@@ -20,6 +20,7 @@ declare module 'vue' {
     ASlider: typeof import('ant-design-vue/es')['Slider']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     DetailCol: typeof import('./src/components/DetailCol.vue')['default']
+    HelpModal: typeof import('./src/components/HelpModal.vue')['default']
     IconR: typeof import('./src/components/icons/IconR.vue')['default']
     IntroModal: typeof import('./src/components/IntroModal.vue')['default']
     SchoolCard: typeof import('./src/components/SchoolCard.vue')['default']

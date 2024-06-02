@@ -11,7 +11,7 @@ const open = computed(() => {
   <AModal
     title="Welcome to My College Ranking!"
     class="intro-modal"
-    style="width: 600px"
+    :width="600"
     :open="open"
     @cancel="seenHelp = true"
   >
