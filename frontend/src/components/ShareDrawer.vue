@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import params, { loadHash } from '@/params'
-import { createShare, listShares } from '@/share'
+import { createShare, deleteShare, listShares } from '@/share'
 import { userParams } from '@/store'
 import { notification } from 'ant-design-vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+
+import { DeleteOutlined, EyeOutlined } from '@ant-design/icons-vue'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -18,6 +20,10 @@ const title = ref('')
 const createLoading = ref(false)
 const getLoading = ref(true)
 const shared = ref([])
+
+const deletingModalOpen = ref(false)
+const deletingItem = ref({ name: '', id: '' })
+const deleteLoading = ref(false)
 
 const createDisabled = computed(() => userParams.value.length === 0)
 
@@ -73,6 +79,27 @@ function visit(item: any) {
     args: param.args
   }))
   open.value = false
+}
+
+function showDeleteModal(item: any) {
+  deletingModalOpen.value = true
+  deletingItem.value = item
+}
+
+async function deleteItem() {
+  deleteLoading.value = true
+  try {
+    const result = await deleteShare(deletingItem.value.id)
+    if (!result.success) throw new Error('Failed to delete share')
+    notification.success({ message: 'Share deleted!' })
+    loadShared()
+  } catch (e) {
+    console.error(e)
+    notification.error({ message: 'Failed to delete share' })
+  } finally {
+    deletingModalOpen.value = false
+    deleteLoading.value = false
+  }
 }
 
 function renderParam(param: any) {
@@ -134,12 +161,30 @@ onUnmounted(() => {
             </template>
           </AListItemMeta>
           <template #actions>
-            <AButton type="link" @click="visit(item)">View</AButton>
+            <ATooltip title="View share">
+              <a href="javascript:void(0)" @click="visit(item)"><EyeOutlined></EyeOutlined></a>
+            </ATooltip>
+            <ATooltip title="Delete share">
+              <a href="javascript:void(0)" @click="showDeleteModal(item)">
+                <DeleteOutlined style="color: red"></DeleteOutlined>
+              </a>
+            </ATooltip>
           </template>
         </AListItem>
       </template>
     </AList>
   </ADrawer>
+  <AModal
+    v-model:open="deletingModalOpen"
+    ok-text="Yes"
+    :title="`Are you sure you want to delete the share &quot;${deletingItem.name}&quot;?`"
+    :confirm-loading="deleteLoading"
+    @ok="deleteItem"
+    @cancel="deletingModalOpen = false"
+  >
+    Please delete only your shares or shares that are inappropriate. Deleting someone else's share
+    is not nice.
+  </AModal>
 </template>
 
 <style scoped>

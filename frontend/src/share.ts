@@ -15,3 +15,8 @@ export async function createShare(data: { name: string; params: string }) {
   })
   return response.json()
 }
+
+export async function deleteShare(id: string) {
+  const response = await fetch(`${BASEURL}/shares/${id}`, { method: 'DELETE' })
+  return response.json()
+}

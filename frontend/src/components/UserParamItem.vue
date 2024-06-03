@@ -32,7 +32,7 @@ const param = params.find((p) => p.id === item.value.id)!
         <div style="display: flex; width: 100%; align-items: center">
           <span style="font-size: 18px">{{ param.name }}</span>
           <span style="flex: 1 0 0"></span>
-          <span style="cursor: pointer" @click="deleteParam(item.id)">
+          <span @click="deleteParam(item.id)">
             <ATooltip title="Delete this parameter">
               <DeleteOutlined style="color: red; font-size: 16px"></DeleteOutlined>
             </ATooltip>

@@ -5,6 +5,7 @@ import uuid
 
 import azure.functions as func
 from azure.cosmos.aio import CosmosClient
+from azure.cosmos.exceptions import CosmosResourceNotFoundError
 
 COSMOS_CONNECTION = os.environ['COSMOS_CONNECTION']
 COSMOS_DATABASE = os.environ['COSMOS_DATABASE']
@@ -46,7 +47,7 @@ def jsonify(fun):
                 status_code=500,
                 mimetype='application/json',
             )
-        if isinstance(result, (dict, list)):
+        if result is None or isinstance(result, (dict, list)):
             result = {'success': True, 'data': result}
             return func.HttpResponse(json_dumps(result), mimetype='application/json')
         return func.HttpResponse(result, mimetype='application/json')
@@ -77,3 +78,14 @@ async def shares_route(req: func.HttpRequest):
         }
         created = await container.create_item(share)
         return filter_data(created)
+
+
+@app.route('shares/{id}', methods=['DELETE'])
+@jsonify
+async def share_route(req: func.HttpRequest):
+    if req.method == 'DELETE':
+        id = req.route_params['id']
+        try:
+            await container.delete_item(id, id)
+        except CosmosResourceNotFoundError:
+            raise ErrorResponse('Share not found', 400)
