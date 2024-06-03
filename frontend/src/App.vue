@@ -8,44 +8,6 @@ import { QuestionCircleOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
 
 const hasBackend = import.meta.env.VITE_SHARE_BACKEND
 
-// function dumpHash() {
-//   let hash = ''
-//   for (const userParam of userParams.value) {
-//     const param = params.find((p) => p.id === userParam.id)!
-//     hash += param.code + userParam.importance.toString(36)
-//     for (const arg of param.arguments) {
-//       hash += ',' + userParam.args[arg.id].toString(36)
-//     }
-//     hash += ';'
-//   }
-//   return hash.slice(0, -1)
-// }
-
-// function loadHash(hash: string) {
-//   if (!hash) {
-//     userParams.value = []
-//     return
-//   }
-//   try {
-//     const parts = hash.split(';')
-//     const newParams: UserParameter[] = []
-//     for (const part of parts) {
-//       const [part1, ...args] = part.split(',')
-//       const code = part1.slice(0, 2)
-//       const importance = part1.slice(2)
-//       const param = params.find((p) => p.code === code)!
-//       const newArgs: Record<string, number> = {}
-//       for (let i = 0; i < param.arguments.length; i++) {
-//         newArgs[param.arguments[i].id] = parseInt(args[i], 36)
-//       }
-//       newParams.push({ id: param.id, importance: parseInt(importance, 36), args: newArgs })
-//     }
-//     userParams.value = newParams
-//   } catch (e) {
-//     console.error('Error parsing hash:', e)
-//   }
-// }
-
 const currentHash = ref('')
 
 function onHashChange() {

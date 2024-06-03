@@ -50,6 +50,7 @@ TEST_REQUIREMENT = {
 
 
 def find_school(pages, slug):
+    """Find the school data with the given slug in the given search pages."""
     for page in pages:
         for entity in page['entities']:
             if entity['content']['entity']['url'] == slug:

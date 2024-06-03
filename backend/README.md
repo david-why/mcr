@@ -22,6 +22,9 @@ The Visual Studio Code extension for Azure Functions is recommended for developm
             "COSMOS_CONNECTION": "YOUR_CONNECTION_STRING",
             "COSMOS_DATABASE": "YOUR_DATABASE_NAME",
             "COSMOS_CONTAINER": "YOUR_CONTAINER_NAME"
+        },
+        "Host": {
+            "CORS": "*"
         }
     }
     ```

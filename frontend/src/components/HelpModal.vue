@@ -3,6 +3,10 @@ import data from '@/assets/data.json'
 import { notification } from 'ant-design-vue'
 import { ref } from 'vue'
 
+import { ShareAltOutlined } from '@ant-design/icons-vue'
+
+const hasBackend = !!import.meta.env.VITE_SHARE_BACKEND
+
 const open = defineModel<boolean>('open', { required: true })
 
 const userParam = ref({
@@ -57,6 +61,12 @@ function resetIntro() {
       <AButton @click="resetIntro">Reset welcome dialog</AButton>
       <AButton type="primary" @click="open = false">Got it!</AButton>
     </template>
+    <p v-if="hasBackend">
+      You can click on the
+      <AButton><ShareAltOutlined></ShareAltOutlined> Share rankings!</AButton> button to share a
+      link of your rankings with others, share your rankings with everyone, or view rankings other
+      people have shared.
+    </p>
   </AModal>
 </template>
 
