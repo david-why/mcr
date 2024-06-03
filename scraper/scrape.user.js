@@ -15,16 +15,6 @@
 
 /* eslint-disable no-undef */
 
-/**
- * Usage after installing the script:
- * 1. Open the page containing a Niche ranking, such as https://www.niche.com/colleges/search/all-colleges/
- * 2. Click on the Tampermonkey icon in the browser toolbar
- * 3. Click on the "Niche Scraper" menu item
- * 4. The script will scrape the page and save the data to Tampermonkey's storage
- * 5. Then the script will scrape all the college pages
- * 6. After the scraping is done, you can export the data from Tampermonkey's storage
- */
-
 // Number of pages to scrape
 const PAGES = 8;
 // Miliseconds to delay between navigations
