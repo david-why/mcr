@@ -4,7 +4,7 @@ This module of the project focuses on scraping content from online sources.
 
 ## Current sources
 
-- [Niche](https://niche.com)
+Currently, the only source that is being scraped is [Niche.com](https://www.niche.com/). The script scrapes college rankings and other information about colleges from the website.
 
 ## Usage
 

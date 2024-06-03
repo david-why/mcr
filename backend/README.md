@@ -30,6 +30,7 @@ The Visual Studio Code extension for Azure Functions is recommended for developm
 6. The server should now be running locally. Use the following endpoints to interact with the backend:
    - `GET http://localhost:7071/api/shares`: List the currently shared ranking parameters, sorted by creation date descending.
    - `POST http://localhost:7071/api/shares`: Create new shared ranking parameters.
+   - `DELETE http://localhost:7071/api/shares/id`: Delete the shared ranking parameters with the specified ID.
 
 ## Deployment
 
@@ -45,3 +46,4 @@ The Visual Studio Code extension for Azure Functions is recommended for developm
 6. Use the following endpoints to interact with the backend:
    - `GET /api/shares`: List the currently shared ranking parameters, sorted by creation date descending.
    - `POST /api/shares`: Create new shared ranking parameters.
+   - `DELETE /api/shares/id`: Delete the shared ranking parameters with the specified ID.
