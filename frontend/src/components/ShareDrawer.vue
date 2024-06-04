@@ -191,4 +191,7 @@ onUnmounted(() => {
 .share-drawer p {
   margin: 8px 0;
 }
+:deep(.ant-list-item-action) a {
+  font-size: 20px !important;
+}
 </style>

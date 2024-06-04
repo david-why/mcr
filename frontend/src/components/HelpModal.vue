@@ -61,11 +61,11 @@ function resetIntro() {
       <AButton @click="resetIntro">Reset welcome dialog</AButton>
       <AButton type="primary" @click="open = false">Got it!</AButton>
     </template>
-    <p v-if="hasBackend">
+    <p v-if="hasBackend" style="padding-top: 10px">
       You can click on the
-      <AButton><ShareAltOutlined></ShareAltOutlined> Share rankings!</AButton> button to share a
-      link of your rankings with others, share your rankings with everyone, or view rankings other
-      people have shared.
+      <AButton><ShareAltOutlined></ShareAltOutlined> Share rankings!</AButton> button to copy a link
+      of your rankings, share your rankings with everyone, or view rankings other people have
+      shared.
     </p>
   </AModal>
 </template>
