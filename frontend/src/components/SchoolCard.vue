@@ -31,7 +31,8 @@ const modalOpen = ref(false)
           class="ranking-number"
           :style="{
             background: index < 3 ? ['#ffd700', '#a0a0a0', '#b36700'][index] : '#e2e2e2',
-            color: index < 3 ? '#fff' : undefined
+            color: index < 3 ? '#fff' : undefined,
+            printColorAdjust: index < 3 ? 'exact' : undefined
           }"
         >
           {{ index + 1 }}
@@ -49,6 +50,7 @@ const modalOpen = ref(false)
 <style scoped>
 .school-list-card {
   width: 100%;
+  break-inside: avoid;
 }
 .school-list-card :deep(.ant-card-meta-title) {
   white-space: normal;

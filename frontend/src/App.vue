@@ -4,7 +4,7 @@ import params, { dumpHash, loadHash, type UserParameter } from '@/params'
 import { userParams } from '@/store'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-import { QuestionCircleOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
+import { QuestionCircleOutlined, ShareAltOutlined, PrinterOutlined } from '@ant-design/icons-vue'
 
 const hasBackend = import.meta.env.VITE_SHARE_BACKEND
 
@@ -34,6 +34,10 @@ watch(
   },
   { deep: true }
 )
+
+function printPage() {
+  window.print()
+}
 
 function shareRanking() {
   shareDrawerOpen.value = true
@@ -117,19 +121,23 @@ const shareDrawerOpen = ref(false)
       <span class="header-title">My College Ranking</span>
       <span style="flex: 1 0 0"></span>
       <span style="cursor: pointer" @click="helpModalOpen = true">
-        <QuestionCircleOutlined style=""></QuestionCircleOutlined>
+        <QuestionCircleOutlined></QuestionCircleOutlined>
       </span>
     </header>
-    <aside>
-      <div style="padding: 0 12px">
-        <ASelect
-          :options="paramOptions"
-          v-model:value="addParamValue"
-          style="width: 100%; margin-top: 36px"
-        ></ASelect>
+    <aside class="layout-aside">
+      <div>
+        <h1 class="aside-title print-only">Parameters</h1>
+        <div style="padding: 0 12px">
+          <ASelect
+            :options="paramOptions"
+            v-model:value="addParamValue"
+            style="width: 100%; margin-top: 36px"
+            class="hide-print"
+          ></ASelect>
+        </div>
         <AList
           :data-source="userParams"
-          :locale="{ emptyText: 'Choose your parameters above!' }"
+          :locale="{ emptyText: 'No parameters selected!' }"
           size="large"
         >
           <template #renderItem="{ item }">
@@ -141,15 +149,21 @@ const shareDrawerOpen = ref(false)
             ></UserParamItem>
           </template>
         </AList>
-        <div style="text-align: right">
-          <AButton v-if="hasBackend" @click="shareRanking">
-            <ShareAltOutlined></ShareAltOutlined> Share rankings!
-          </AButton>
+        <div style="text-align: right" class="hide-print">
+          <ASpace>
+            <AButton type="primary" @click="printPage">
+              <PrinterOutlined></PrinterOutlined> Print
+            </AButton>
+            <AButton v-if="hasBackend" @click="shareRanking">
+              <ShareAltOutlined></ShareAltOutlined> Share rankings!
+            </AButton>
+          </ASpace>
         </div>
       </div>
     </aside>
-    <main>
+    <main class="layout-main">
       <div style="padding: 24px; background: #fff">
+        <h1 class="main-title print-only">Schools</h1>
         <AList class="school-list" :data-source="sortedSchools" :split="false">
           <template #renderItem="{ item, index }">
             <AListItem class="school-list-item">
@@ -173,6 +187,20 @@ const shareDrawerOpen = ref(false)
   grid-template-rows: 64px 1fr;
   grid-template-areas: 'header header' 'aside main';
 }
+@media screen and (max-width: 768px) {
+  .container {
+    grid-template-rows: 64px auto 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas: 'header' 'aside' 'main';
+  }
+}
+@media print {
+  .container {
+    grid-template-columns: 100%;
+    grid-template-rows: auto auto;
+    grid-template-areas: 'aside' 'main';
+  }
+}
 /* Header */
 .layout-header {
   grid-area: header;
@@ -188,6 +216,29 @@ const shareDrawerOpen = ref(false)
 .header-title {
   font-weight: bold;
 }
+/* Aside */
+.layout-aside {
+  grid-area: aside;
+}
+.aside-title {
+  margin-left: 24px;
+  font-size: 2em;
+}
+@media print {
+  .layout-aside {
+    margin-top: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #999;
+  }
+}
+/* Main */
+.layout-main {
+  grid-area: main;
+}
+.main-title {
+  margin-bottom: 24px;
+  font-size: 2em;
+}
 /* School list */
 .school-list-item {
   padding-left: 0;
@@ -195,12 +246,5 @@ const shareDrawerOpen = ref(false)
 }
 .school-list-item:nth-child(2n + 1) :deep(.school-list-card) {
   background: #f5f5f5;
-}
-@media screen and (max-width: 768px) {
-  .container {
-    grid-template-rows: 64px auto 1fr;
-    grid-template-columns: 1fr;
-    grid-template-areas: 'header' 'aside' 'main';
-  }
 }
 </style>

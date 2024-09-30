@@ -23,6 +23,7 @@ declare module 'vue' {
     ARow: typeof import('ant-design-vue/es')['Row']
     ASelect: typeof import('ant-design-vue/es')['Select']
     ASlider: typeof import('ant-design-vue/es')['Slider']
+    ASpace: typeof import('ant-design-vue/es')['Space']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     DetailCol: typeof import('./src/components/DetailCol.vue')['default']
     HelpModal: typeof import('./src/components/HelpModal.vue')['default']

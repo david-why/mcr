@@ -1,1 +1,14 @@
 @import './base.css';
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  .hide-print {
+    display: none;
+  }
+  .print-only {
+    display: unset;
+  }
+}

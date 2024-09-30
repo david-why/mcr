@@ -3,7 +3,7 @@ import data from '@/assets/data.json'
 import { notification } from 'ant-design-vue'
 import { ref } from 'vue'
 
-import { ShareAltOutlined } from '@ant-design/icons-vue'
+import { ShareAltOutlined, PrinterOutlined } from '@ant-design/icons-vue'
 
 const hasBackend = !!import.meta.env.VITE_SHARE_BACKEND
 
@@ -61,7 +61,13 @@ function resetIntro() {
       <AButton @click="resetIntro">Reset welcome dialog</AButton>
       <AButton type="primary" @click="open = false">Got it!</AButton>
     </template>
-    <p v-if="hasBackend" style="padding-top: 10px">
+    <p style="padding-top: 10px">
+      You can click on the
+      <AButton type="primary"><PrinterOutlined></PrinterOutlined> Print</AButton> button to print
+      the parameters you chose as well as the list of schools. This is useful if you want to share
+      your rankings with someone else.
+    </p>
+    <p v-if="hasBackend">
       You can click on the
       <AButton><ShareAltOutlined></ShareAltOutlined> Share rankings!</AButton> button to copy a link
       of your rankings, share your rankings with everyone, or view rankings other people have
