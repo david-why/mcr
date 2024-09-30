@@ -64,8 +64,8 @@ function resetIntro() {
     <p style="padding-top: 10px">
       You can click on the
       <AButton type="primary"><PrinterOutlined></PrinterOutlined> Print</AButton> button to print
-      the parameters you chose as well as the list of schools. This is useful if you want to share
-      your rankings with someone else.
+      the parameters you chose as well as the list of schools, or export it to a PDF. This is useful
+      if you want to share your rankings with someone else.
     </p>
     <p v-if="hasBackend">
       You can click on the
