@@ -189,6 +189,26 @@ const params: Parameter[] = [
     }
   },
   {
+    id: 'high-acceptance-rate',
+    name: 'High acceptance rate',
+    code: 'hc',
+    group: 'General',
+    arguments: [],
+    func: (school: School) => {
+      return normalizeValue(school.acceptance_rate, 'acceptance_rate')
+    }
+  },
+  {
+    id: 'low-acceptance-rate',
+    name: 'Low acceptance rate',
+    code: 'lc',
+    group: 'General',
+    arguments: [],
+    func: (school: School) => {
+      return 1 - normalizeValue(school.acceptance_rate, 'acceptance_rate')
+    }
+  },
+  {
     id: 'earnings',
     name: 'High earnings after school',
     code: 'en',
