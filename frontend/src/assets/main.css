@@ -5,8 +5,12 @@
 }
 
 @media print {
-  .hide-print {
+  .ant-notification,
+  .ant-drawer {
     display: none;
+  }
+  .hide-print {
+    display: none !important;
   }
   .print-only {
     display: unset;

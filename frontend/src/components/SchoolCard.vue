@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isPrinting } from '@/store'
 import type { School } from '@/types'
 import { ref } from 'vue'
 
@@ -21,7 +22,7 @@ const modalOpen = ref(false)
 </script>
 
 <template>
-  <ACard class="school-list-card" hoverable @click="onClick">
+  <ACard class="school-list-card" :hoverable="!isPrinting" @click="onClick">
     <ACardMeta>
       <template #title>
         <span style="font-size: 18px">{{ school.name }} // Score: {{ score }}</span>

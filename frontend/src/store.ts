@@ -15,3 +15,5 @@ export const seenHelp = computed({
     seenHelpCounter.value++
   }
 })
+
+export const isPrinting = ref(false)

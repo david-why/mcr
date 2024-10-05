@@ -8,7 +8,16 @@ import { QuestionCircleOutlined, ShareAltOutlined, PrinterOutlined } from '@ant-
 
 const hasBackend = import.meta.env.VITE_SHARE_BACKEND
 
+const isHome = ref(true)
+
 const currentHash = ref('')
+const fullPath = computed(() => {
+  currentHash.value
+  return location.href
+})
+
+const secondCounter = ref(0)
+const secondTimer = ref(0)
 
 function onHashChange() {
   if (location.hash === currentHash.value) return
@@ -18,25 +27,36 @@ function onHashChange() {
 
 onMounted(() => {
   if (location.hash.length > 1) {
+    currentHash.value = location.hash
     userParams.value = loadHash(decodeURIComponent(location.hash.slice(1)))
   }
   window.addEventListener('hashchange', onHashChange)
+  secondTimer.value = setInterval(() => {
+    secondCounter.value++
+  }, 1000)
 })
 
 onUnmounted(() => {
   window.removeEventListener('hashchange', onHashChange)
+  if (secondTimer.value) {
+    clearInterval(secondTimer.value)
+  }
 })
 
 watch(
   userParams,
   (value) => {
     location.hash = '#' + dumpHash(value)
+    if (value.length) {
+      isHome.value = false
+    }
   },
   { deep: true }
 )
 
-function printPage() {
-  window.print()
+function goHome() {
+  userParams.value = []
+  isHome.value = true
 }
 
 function shareRanking() {
@@ -65,6 +85,18 @@ const paramOptions = computed(() => {
         }))
     }))
   )
+})
+const homeParamOptions = computed(() => {
+  const params = paramOptions.value
+  params.shift()
+  return [{ label: 'Click here & start your ranking!', value: '' }].concat(params)
+})
+
+const homeLinks = computed(() => {
+  return [
+    { label: 'Best Academics', href: '#ov1e;ac2s' },
+    { label: 'Best Life', href: '#ov1e;fo1e;ca23;sl2s' }
+  ]
 })
 
 const addParamValue = ref('')
@@ -115,10 +147,12 @@ const shareDrawerOpen = ref(false)
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" v-if="!isHome">
     <header class="layout-header">
-      <IconR style="height: 32px; padding-right: 12px"></IconR>
-      <span class="header-title">My College Ranking</span>
+      <span style="display: flex; align-items: center; cursor: pointer" @click="goHome">
+        <IconR style="height: 32px; padding-right: 12px"></IconR>
+        <span class="header-title">My College Ranking</span>
+      </span>
       <span style="flex: 1 0 0"></span>
       <span style="cursor: pointer" @click="helpModalOpen = true">
         <QuestionCircleOutlined></QuestionCircleOutlined>
@@ -149,11 +183,8 @@ const shareDrawerOpen = ref(false)
             ></UserParamItem>
           </template>
         </AList>
-        <div style="text-align: right" class="hide-print">
+        <div style="text-align: right; padding-right: 12px" class="hide-print">
           <ASpace>
-            <AButton type="primary" @click="printPage">
-              <PrinterOutlined></PrinterOutlined> Print
-            </AButton>
             <AButton v-if="hasBackend" @click="shareRanking">
               <ShareAltOutlined></ShareAltOutlined> Share rankings!
             </AButton>
@@ -166,20 +197,123 @@ const shareDrawerOpen = ref(false)
         <h1 class="main-title print-only">Schools</h1>
         <AList class="school-list" :data-source="sortedSchools" :split="false">
           <template #renderItem="{ item, index }">
-            <AListItem class="school-list-item">
+            <AListItem class="school-list-item" :class="{ 'hide-print': index > 29 }">
               <SchoolCard :school="item" :index="index" :score="item.score"></SchoolCard>
             </AListItem>
           </template>
         </AList>
+        <p class="more-schools print-only">
+          For more colleges on this ranking, please visit: {{ fullPath }}
+        </p>
       </div>
     </main>
   </div>
-  <IntroModal></IntroModal>
+  <div class="home-container" v-else>
+    <div class="home-header"></div>
+    <div style="padding-top: 30vh"></div>
+    <h1 class="home-title">
+      <span class="home-title-text">
+        <span v-for="(char, index) in 'My College Ranking'.split('')" :key="index">{{ char }}</span>
+      </span>
+    </h1>
+    <div>
+      <ASelect
+        :options="homeParamOptions"
+        v-model:value="addParamValue"
+        class="home-select"
+        size="large"
+      ></ASelect>
+    </div>
+    <div class="home-links">
+      <ASpace size="large">
+        <!-- <template #split>
+          <span style="border-right: 1px solid #bbb"></span>
+        </template> -->
+        <span style="font-size: 16px">Or try these:</span>
+        <a
+          class="home-link"
+          v-for="{ label, href } in homeLinks"
+          :key="href"
+          :href="href"
+          v-text="label"
+        ></a>
+      </ASpace>
+    </div>
+    <div class="home-spacer"></div>
+    <div class="home-desc">
+      <p>Create college rankings with your own set of parameters!</p>
+      <p>Website created by David Wang</p>
+      <p>
+        Source code available on
+        <ASpace>
+          <a href="https://github.com/david-why/mcr" target="_blank" style="font-size: 16px"
+            >GitHub</a
+          >
+        </ASpace>
+      </p>
+    </div>
+  </div>
+  <!-- <IntroModal></IntroModal> -->
   <HelpModal v-model:open="helpModalOpen"></HelpModal>
   <ShareDrawer v-if="hasBackend" v-model:open="shareDrawerOpen"></ShareDrawer>
 </template>
 
 <style scoped>
+/* Home */
+.home-container {
+  font-size: 16px;
+  text-align: center;
+  /* padding-top: 30vh; */
+}
+.home-header {
+  background: #001529;
+  height: 32px;
+  /* display: flex;
+  padding: 8px 24px;
+  color: white;
+  background: #444; */
+}
+.home-title {
+  font-size: 2.5em;
+  text-align: center;
+  word-spacing: 0.2em;
+  /* padding: 18px 0; */
+  /* color: white;
+  background: #444; */
+}
+.home-title-text {
+  background-image: linear-gradient(to right, #f50, #2db7f5);
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.home-select {
+  width: 40%;
+  min-width: 614px;
+  margin-top: 24px;
+}
+.home-select :deep(.ant-select-selection-item) {
+  text-align: center;
+}
+.home-links {
+  margin-top: 16px;
+}
+.home-link {
+  font-size: 16px;
+}
+.home-spacer {
+  height: 48px;
+}
+.home-desc p {
+  padding-bottom: 12px;
+}
+@media screen and (max-width: 768px) {
+  .home-select {
+    width: 80%;
+    min-width: 0;
+  }
+}
 /* Layout */
 .container {
   display: grid;
@@ -246,5 +380,9 @@ const shareDrawerOpen = ref(false)
 }
 .school-list-item:nth-child(2n + 1) :deep(.school-list-card) {
   background: #f5f5f5;
+}
+.more-schools {
+  font-style: italic;
+  text-align: center;
 }
 </style>

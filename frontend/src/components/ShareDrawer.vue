@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import params, { loadHash } from '@/params'
 import { createShare, deleteShare, listShares } from '@/share'
-import { userParams } from '@/store'
+import { isPrinting, userParams } from '@/store'
 import { notification } from 'ant-design-vue'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
-import { DeleteOutlined, EyeOutlined } from '@ant-design/icons-vue'
+import { DeleteOutlined, EyeOutlined, PrinterOutlined } from '@ant-design/icons-vue'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -32,6 +32,13 @@ const link = computed(() => {
   linkCounter.value
   return location.href
 })
+
+async function printPage() {
+  isPrinting.value = true
+  await nextTick()
+  window.print()
+  isPrinting.value = false
+}
 
 function copyLink() {
   if (!navigator || !navigator.clipboard) {
@@ -129,7 +136,11 @@ onUnmounted(() => {
 <template>
   <ADrawer v-model:open="open" class="share-drawer">
     <h2>Share rankings</h2>
-    <p>You can copy the link below to share your current ranking with others:</p>
+    <p>
+      You can
+      <AButton @click="printPage"><PrinterOutlined></PrinterOutlined> Print</AButton>
+      your ranking, or copy the link below to share your ranking with others:
+    </p>
     <AInputGroup compact style="display: flex">
       <AInput :value="link" readonly></AInput>
       <AButton @click="copyLink">Copy</AButton>
@@ -183,7 +194,7 @@ onUnmounted(() => {
     @cancel="deletingModalOpen = false"
   >
     Please delete only your shares or shares that are inappropriate. Deleting someone else's share
-    is not nice.
+    for no reason is not nice.
   </AModal>
 </template>
 
