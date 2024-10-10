@@ -40,10 +40,15 @@ declare type SchoolNumberKey = {
   [K in keyof School]: School[K] extends number ? K : never
 }[keyof School]
 
+const cachedRange: Record<SchoolNumberKey, [number, number]> = {} as any
+
 function getRange(key: SchoolNumberKey) {
+  if (cachedRange[key]) {
+    return cachedRange[key]
+  }
   const min = Math.min(...data.schools.map((school) => school[key]))
   const max = Math.max(...data.schools.map((school) => school[key]))
-  return [min, max]
+  return cachedRange[key] = [min, max]
 }
 
 function normalizeValue(value: number, key: SchoolNumberKey) {

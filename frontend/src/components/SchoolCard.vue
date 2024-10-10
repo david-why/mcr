@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { isPrinting } from '@/store'
+import { isPrinting, isTouring } from '@/store'
 import type { School } from '@/types'
+import { notification } from 'ant-design-vue'
 import { ref } from 'vue'
 
 defineProps<{
@@ -15,6 +16,10 @@ function truncate(text: string | null) {
 }
 
 function onClick() {
+  if (isTouring.value) {
+    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    return
+  }
   modalOpen.value = true
 }
 
@@ -80,6 +85,11 @@ const modalOpen = ref(false)
   }
 }
 @media screen and (min-width: 769px) {
+  .school-description-mobile {
+    display: none;
+  }
+}
+@media print {
   .school-description-mobile {
     display: none;
   }

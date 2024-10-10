@@ -1,14 +1,31 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
 import params, { dumpHash, loadHash, type UserParameter } from '@/params'
-import { userParams } from '@/store'
+import { isTouring, userParams, isSelecting } from '@/store'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-import { QuestionCircleOutlined, ShareAltOutlined, PrinterOutlined } from '@ant-design/icons-vue'
+import {
+  DeleteOutlined,
+  QuestionCircleOutlined,
+  PlusCircleOutlined,
+  ShareAltOutlined
+} from '@ant-design/icons-vue'
+import { notification } from 'ant-design-vue'
 
 const hasBackend = import.meta.env.VITE_SHARE_BACKEND
 
 const isHome = ref(true)
+watch(
+  isHome,
+  (value) => {
+    if (value) {
+      isHome.value = false
+    }
+  },
+  { immediate: true }
+)
+
+const tour = ref<{ startTour: () => Promise<void> }>({} as any)
 
 const currentHash = ref('')
 const fullPath = computed(() => {
@@ -20,6 +37,7 @@ const secondCounter = ref(0)
 const secondTimer = ref(0)
 
 function onHashChange() {
+  console.log('hashchange', location.hash, currentHash.value)
   if (location.hash === currentHash.value) return
   currentHash.value = location.hash
   userParams.value = loadHash(decodeURIComponent(location.hash.slice(1)))
@@ -34,6 +52,8 @@ onMounted(() => {
   secondTimer.value = setInterval(() => {
     secondCounter.value++
   }, 1000)
+  // console.log('tour', tour.value.startTour)
+  // window.startTour = startTour.value = tour.value.startTour
 })
 
 onUnmounted(() => {
@@ -59,17 +79,34 @@ function goHome() {
   isHome.value = true
 }
 
+function openHelpModal() {
+  if (isTouring.value) {
+    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    return
+  }
+  // helpModalOpen.value = true
+  isTouring.value = true
+}
+
+function openSelectModal() {
+  if (isTouring.value) {
+    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    return
+  }
+  isSelecting.value = true
+}
+
+function resetRanking() {
+  userParams.value = []
+}
+
 function shareRanking() {
   shareDrawerOpen.value = true
 }
 
-const unchosenParams = computed(() => {
-  return params.filter((param) => !userParams.value.find((p) => p.id === param.id))
-})
-
-const paramOptions = computed(() => {
+const allOptions = computed(() => {
   const groups: string[] = []
-  for (const param of unchosenParams.value) {
+  for (const param of params) {
     if (param.group && !groups.includes(param.group)) {
       groups.push(param.group)
     }
@@ -77,7 +114,7 @@ const paramOptions = computed(() => {
   return [{ label: 'Select a parameter to add...', value: '' } as any].concat(
     groups.map((group) => ({
       label: group,
-      options: unchosenParams.value
+      options: params
         .filter((param) => param.group === group)
         .map((param) => ({
           value: param.id,
@@ -85,6 +122,22 @@ const paramOptions = computed(() => {
         }))
     }))
   )
+})
+const paramOptions = computed(() => {
+  return allOptions.value.map((group) => {
+    if (group.options) {
+      return {
+        label: group.label,
+        options: group.options.filter(
+          (option: { id: string }) => !userParams.value.find((p) => p.id === option.id)
+        )
+      }
+    }
+    return group
+  })
+})
+const checkOptions = computed(() => {
+  return paramOptions.value.filter((group) => group.options && group.options.length > 0)
 })
 const homeParamOptions = computed(() => {
   const params = paramOptions.value
@@ -144,35 +197,61 @@ const sortedSchools = computed(() => {
 
 const helpModalOpen = ref(false)
 const shareDrawerOpen = ref(false)
+// const selectModalOpen = ref(false)
+
+const chosenOptions = ref<string[]>([])
+watch(
+  () => [...userParams.value],
+  (value, oldValue) => {
+    if (JSON.stringify(value) === JSON.stringify(oldValue)) {
+      return
+    }
+    chosenOptions.value = value.map((p) => p.id)
+  },
+  { deep: true }
+)
+watch(
+  chosenOptions,
+  (value) => {
+    userParams.value = userParams.value.filter((p) => value.includes(p.id))
+    for (const param of value) {
+      if (userParams.value.find((p) => p.id === param)) {
+        continue
+      }
+      const args: Record<string, number> = {}
+      for (const arg of params.find((p) => p.id === param)!.arguments) {
+        args[arg.id] = arg.default === undefined ? arg.min : arg.default
+      }
+      userParams.value.push({ id: param, importance: 100, args })
+    }
+  },
+  { deep: true }
+)
 </script>
 
 <template>
   <div class="container" v-if="!isHome">
     <header class="layout-header">
       <span style="display: flex; align-items: center; cursor: pointer" @click="goHome">
-        <IconR style="height: 32px; padding-right: 12px"></IconR>
-        <span class="header-title">My College Ranking</span>
+        <WebsiteTitle class="header-title"></WebsiteTitle>
       </span>
       <span style="flex: 1 0 0"></span>
-      <span style="cursor: pointer" @click="helpModalOpen = true">
+      <!-- class used in tour -->
+      <span class="help-button" style="cursor: pointer" @click="openHelpModal">
         <QuestionCircleOutlined></QuestionCircleOutlined>
       </span>
     </header>
     <aside class="layout-aside">
       <div>
         <h1 class="aside-title print-only">Parameters</h1>
-        <div style="padding: 0 12px">
-          <ASelect
-            :options="paramOptions"
-            v-model:value="addParamValue"
-            style="width: 100%; margin-top: 36px"
-            class="hide-print"
-          ></ASelect>
-        </div>
+        <div style="margin-top: 36px"></div>
+        <h1 style="padding-left: 24px">Parameters</h1>
+        <!-- class used in tour -->
         <AList
           :data-source="userParams"
           :locale="{ emptyText: 'No parameters selected!' }"
           size="large"
+          class="param-list"
         >
           <template #renderItem="{ item }">
             <!-- this hack (instead of v-model) is needed because `item` is readonly -->
@@ -183,13 +262,25 @@ const shareDrawerOpen = ref(false)
             ></UserParamItem>
           </template>
         </AList>
-        <div style="text-align: right; padding-right: 12px" class="hide-print">
-          <ASpace>
-            <AButton v-if="hasBackend" @click="shareRanking">
+        <!-- <ASelect
+            :options="paramOptions"
+            v-model:value="addParamValue"
+            style="width: 100%"
+            class="hide-print"
+          ></ASelect> -->
+        <ASpace class="hide-print" style="width: 100%; padding: 0 12px" direction="vertical">
+          <!-- class used in tour -->
+          <AButton class="add-params-button" @click="openSelectModal" style="width: 100%">
+            <PlusCircleOutlined></PlusCircleOutlined> Add parameters
+          </AButton>
+          <!-- class used in tour -->
+          <AFlex class="buttons-row-2" :gap="8">
+            <AButton danger @click="resetRanking"><DeleteOutlined></DeleteOutlined> Reset</AButton>
+            <AButton v-if="hasBackend" @click="shareRanking" style="flex: 1 0 auto">
               <ShareAltOutlined></ShareAltOutlined> Share rankings!
             </AButton>
-          </ASpace>
-        </div>
+          </AFlex>
+        </ASpace>
       </div>
     </aside>
     <main class="layout-main">
@@ -212,23 +303,21 @@ const shareDrawerOpen = ref(false)
     <div class="home-header"></div>
     <div style="padding-top: 30vh"></div>
     <h1 class="home-title">
-      <span class="home-title-text">
-        <span v-for="(char, index) in 'My College Ranking'.split('')" :key="index">{{ char }}</span>
-      </span>
+      <WebsiteTitle></WebsiteTitle>
     </h1>
     <div>
-      <ASelect
+      <!-- <ASelect
         :options="homeParamOptions"
         v-model:value="addParamValue"
         class="home-select"
         size="large"
-      ></ASelect>
+      ></ASelect> -->
+      <AButton @click="openSelectModal" size="large" class="home-select">
+        Click here & start your ranking!
+      </AButton>
     </div>
     <div class="home-links">
       <ASpace size="large">
-        <!-- <template #split>
-          <span style="border-right: 1px solid #bbb"></span>
-        </template> -->
         <span style="font-size: 16px">Or try these:</span>
         <a
           class="home-link"
@@ -253,9 +342,15 @@ const shareDrawerOpen = ref(false)
       </p>
     </div>
   </div>
-  <!-- <IntroModal></IntroModal> -->
+  <IntroModal></IntroModal>
   <HelpModal v-model:open="helpModalOpen"></HelpModal>
   <ShareDrawer v-if="hasBackend" v-model:open="shareDrawerOpen"></ShareDrawer>
+  <SelectModal
+    v-model:open="isSelecting"
+    :options="checkOptions"
+    v-model:checked="chosenOptions"
+  ></SelectModal>
+  <WebsiteTour v-model:open="isTouring" ref="tour"></WebsiteTour>
 </template>
 
 <style scoped>
@@ -263,25 +358,17 @@ const shareDrawerOpen = ref(false)
 .home-container {
   font-size: 16px;
   text-align: center;
-  /* padding-top: 30vh; */
 }
 .home-header {
   background: #001529;
   height: 32px;
-  /* display: flex;
-  padding: 8px 24px;
-  color: white;
-  background: #444; */
 }
 .home-title {
   font-size: 2.5em;
   text-align: center;
   word-spacing: 0.2em;
-  /* padding: 18px 0; */
-  /* color: white;
-  background: #444; */
 }
-.home-title-text {
+.rainbow-text {
   background-image: linear-gradient(to right, #f50, #2db7f5);
   color: transparent;
   background-clip: text;
@@ -353,6 +440,7 @@ const shareDrawerOpen = ref(false)
 /* Aside */
 .layout-aside {
   grid-area: aside;
+  scroll-margin-bottom: calc(100vh - 200px);
 }
 .aside-title {
   margin-left: 24px;
@@ -374,6 +462,9 @@ const shareDrawerOpen = ref(false)
   font-size: 2em;
 }
 /* School list */
+.school-list {
+  scroll-margin-top: 200px;
+}
 .school-list-item {
   padding-left: 0;
   padding-right: 0;

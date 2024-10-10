@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UserParameter } from '@/params'
 import params from '@/params'
-import { userParams } from '@/store'
+import { isTouring, userParams } from '@/store'
 import { DeleteOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({ deletable: { type: Boolean, default: true } })

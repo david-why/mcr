@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { seenHelp } from '@/store'
+import { isTouring, seenHelp } from '@/store'
 import { computed } from 'vue'
 
 const open = computed(() => {
   return !seenHelp.value
 })
+
+function closeModal() {
+  seenHelp.value = true
+}
+
+function doStartTour() {
+  closeModal()
+  isTouring.value = true
+  // startTour.value()
+}
 </script>
 
 <template>
@@ -13,9 +23,9 @@ const open = computed(() => {
     class="intro-modal"
     :width="600"
     :open="open"
-    @cancel="seenHelp = true"
+    @cancel="closeModal"
   >
-    <p>
+    <!-- <p>
       You might have heard of college rankings like the U.S. News and World Report, which use a set
       of criteria to rank colleges. But what if you could rank colleges based on your own
       preferences?
@@ -36,9 +46,11 @@ const open = computed(() => {
       universities in the United States. This website is in no way affiliated with or endorsed by
       Niche.com. The rankings and data are for reference only and should not be used as the sole
       basis for making decisions.
-    </p>
+    </p> -->
+    <p>Seems like it's your first time here! Would you like a tour of how to use the website?</p>
     <template #footer>
-      <AButton type="primary" @click="seenHelp = true">Let's go!</AButton>
+      <AButton @click="closeModal">No, thanks</AButton>
+      <AButton type="primary" @click="doStartTour">Let's go!</AButton>
     </template>
   </AModal>
 </template>
