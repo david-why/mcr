@@ -15,6 +15,9 @@
   .print-only {
     display: unset;
   }
+  .ant-card-hoverable:hover {
+    box-shadow: none !important;
+  }
 }
 
 .ant-tour {

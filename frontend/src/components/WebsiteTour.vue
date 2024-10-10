@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { isSelecting, seenHelp, userParams } from '@/store'
-import { computed, h, nextTick, ref, watch } from 'vue'
+import { isSelecting, userParams } from '@/store'
 import { Button as AButton, notification } from 'ant-design-vue'
+import { h, nextTick, ref, watch } from 'vue'
+import { QuestionCircleOutlined } from '@ant-design/icons-vue'
 
 const open = defineModel<boolean>('open', { required: true })
 watch(open, (value, oldValue) => {
@@ -37,7 +38,7 @@ const steps: any[] = [
   {
     title: 'Parameters',
     description:
-      'We chose some sample parameters for demo purposes. The website will calculate a score for each college based on these parameters, and sort the colleges based on the scores. Here, you can adjust the importance of each parameter.',
+      'We chose some sample parameters for demo purposes. The website will calculate a score for each college based on these parameters, and sort the colleges based on the scores. Here, you can adjust the importance of each parameter by dragging the blue slider.',
     target: () => document.querySelector('.param-list')!,
     placement: 'bottom'
   },
@@ -50,7 +51,7 @@ const steps: any[] = [
   {
     title: 'Share your ranking',
     description:
-      'You can share your ranking with others by clicking on the "Share rankings" button, where you can print your ranking, copy a link to it, or share it publicly.',
+      'You can share your ranking with others by clicking on the "Share rankings" button, where you can print your ranking, copy a link to it, or share it publicly. You can reset your ranking by clicking on the "Reset" button.',
     target: () => document.querySelector('.buttons-row-2')!
   },
   {
@@ -63,8 +64,11 @@ const steps: any[] = [
   },
   {
     title: "That's it!",
-    description:
-      'Hope you enjoy this website! If you need help, you can always click on the "Help" button to view this website tour again.',
+    description: h('div', [
+      'Hope you enjoy this website! If you need help, you can always click on the "',
+      h(QuestionCircleOutlined),
+      '" button to view this demo again.'
+    ]),
     target: () => document.querySelector('.anticon-question-circle')!,
     placement: 'bottomLeft'
   }

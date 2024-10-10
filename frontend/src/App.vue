@@ -1,29 +1,19 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
 import params, { dumpHash, loadHash, type UserParameter } from '@/params'
-import { isTouring, userParams, isSelecting } from '@/store'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-
+import { isPrinting, isSelecting, isTouring, userParams } from '@/store'
 import {
+  ArrowUpOutlined,
   DeleteOutlined,
-  QuestionCircleOutlined,
   PlusCircleOutlined,
+  QuestionCircleOutlined,
   ShareAltOutlined
 } from '@ant-design/icons-vue'
 import { notification } from 'ant-design-vue'
+import { computed, h, onMounted, onUnmounted, ref, watch } from 'vue'
 
-const hasBackend = import.meta.env.VITE_SHARE_BACKEND
-
-const isHome = ref(true)
-watch(
-  isHome,
-  (value) => {
-    if (value) {
-      isHome.value = false
-    }
-  },
-  { immediate: true }
-)
+const DEFAULT_IMPORTANCE = 50
+const hasBackend = !!import.meta.env.VITE_SHARE_BACKEND
 
 const tour = ref<{ startTour: () => Promise<void> }>({} as any)
 
@@ -52,8 +42,6 @@ onMounted(() => {
   secondTimer.value = setInterval(() => {
     secondCounter.value++
   }, 1000)
-  // console.log('tour', tour.value.startTour)
-  // window.startTour = startTour.value = tour.value.startTour
 })
 
 onUnmounted(() => {
@@ -67,16 +55,16 @@ watch(
   userParams,
   (value) => {
     location.hash = '#' + dumpHash(value)
-    if (value.length) {
-      isHome.value = false
-    }
   },
   { deep: true }
 )
 
 function goHome() {
+  if (isTouring.value) {
+    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    return
+  }
   userParams.value = []
-  isHome.value = true
 }
 
 function openHelpModal() {
@@ -97,11 +85,19 @@ function openSelectModal() {
 }
 
 function resetRanking() {
+  if (isTouring.value) {
+    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    return
+  }
   userParams.value = []
 }
 
 function shareRanking() {
   shareDrawerOpen.value = true
+}
+
+function goToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const allOptions = computed(() => {
@@ -139,18 +135,6 @@ const paramOptions = computed(() => {
 const checkOptions = computed(() => {
   return paramOptions.value.filter((group) => group.options && group.options.length > 0)
 })
-const homeParamOptions = computed(() => {
-  const params = paramOptions.value
-  params.shift()
-  return [{ label: 'Click here & start your ranking!', value: '' }].concat(params)
-})
-
-const homeLinks = computed(() => {
-  return [
-    { label: 'Best Academics', href: '#ov1e;ac2s' },
-    { label: 'Best Life', href: '#ov1e;fo1e;ca23;sl2s' }
-  ]
-})
 
 const addParamValue = ref('')
 
@@ -160,7 +144,7 @@ watch(addParamValue, (value) => {
     for (const arg of params.find((param) => param.id === value)!.arguments) {
       args[arg.id] = arg.default === undefined ? arg.min : arg.default
     }
-    userParams.value.push({ id: value, importance: 100, args })
+    userParams.value.push({ id: value, importance: DEFAULT_IMPORTANCE, args })
     addParamValue.value = ''
   }
 })
@@ -191,13 +175,24 @@ const scoredSchools = computed(() => {
   }))
 })
 
-const sortedSchools = computed(() => {
-  return [...scoredSchools.value].sort((a, b) => b.score - a.score)
+const schoolDisplayCount = ref(30)
+watch(
+  userParams,
+  () => {
+    schoolDisplayCount.value = 30
+  },
+  { deep: true }
+)
+
+const totalSchools = computed(() => scoredSchools.value.length)
+const displaySchools = computed(() => {
+  return [...scoredSchools.value]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, schoolDisplayCount.value)
 })
 
 const helpModalOpen = ref(false)
 const shareDrawerOpen = ref(false)
-// const selectModalOpen = ref(false)
 
 const chosenOptions = ref<string[]>([])
 watch(
@@ -222,7 +217,7 @@ watch(
       for (const arg of params.find((p) => p.id === param)!.arguments) {
         args[arg.id] = arg.default === undefined ? arg.min : arg.default
       }
-      userParams.value.push({ id: param, importance: 100, args })
+      userParams.value.push({ id: param, importance: DEFAULT_IMPORTANCE, args })
     }
   },
   { deep: true }
@@ -230,7 +225,7 @@ watch(
 </script>
 
 <template>
-  <div class="container" v-if="!isHome">
+  <div class="container">
     <header class="layout-header">
       <span style="display: flex; align-items: center; cursor: pointer" @click="goHome">
         <WebsiteTitle class="header-title"></WebsiteTitle>
@@ -243,15 +238,22 @@ watch(
     </header>
     <aside class="layout-aside">
       <div>
-        <h1 class="aside-title print-only">Parameters</h1>
-        <div style="margin-top: 36px"></div>
-        <h1 style="padding-left: 24px">Parameters</h1>
+        <h1 class="aside-title print-only">My College Ranking</h1>
+        <div style="margin-top: 36px" class="hide-print"></div>
+        <h1 style="padding-left: 24px" class="hide-print">Parameters</h1>
         <!-- class used in tour -->
         <AList
           :data-source="userParams"
-          :locale="{ emptyText: 'No parameters selected!' }"
+          :locale="{
+            emptyText: h(
+              'div',
+              { style: { color: 'rgba(0, 0, 0, 0.75)' } },
+              'No parameters selected. Click on the &quot;Add parameters&quot; button below to add some!'
+            )
+          }"
           size="large"
           class="param-list"
+          :class="{ 'hide-print': userParams.length === 0 }"
         >
           <template #renderItem="{ item }">
             <!-- this hack (instead of v-model) is needed because `item` is readonly -->
@@ -262,12 +264,6 @@ watch(
             ></UserParamItem>
           </template>
         </AList>
-        <!-- <ASelect
-            :options="paramOptions"
-            v-model:value="addParamValue"
-            style="width: 100%"
-            class="hide-print"
-          ></ASelect> -->
         <ASpace class="hide-print" style="width: 100%; padding: 0 12px" direction="vertical">
           <!-- class used in tour -->
           <AButton class="add-params-button" @click="openSelectModal" style="width: 100%">
@@ -286,11 +282,20 @@ watch(
     <main class="layout-main">
       <div style="padding: 24px; background: #fff">
         <h1 class="main-title print-only">Schools</h1>
-        <AList class="school-list" :data-source="sortedSchools" :split="false">
+        <AList class="school-list" :data-source="displaySchools" :split="false">
           <template #renderItem="{ item, index }">
             <AListItem class="school-list-item" :class="{ 'hide-print': index > 29 }">
               <SchoolCard :school="item" :index="index" :score="item.score"></SchoolCard>
             </AListItem>
+          </template>
+          <template #footer>
+            <AButton
+              v-if="totalSchools > schoolDisplayCount"
+              @click="schoolDisplayCount += 30"
+              style="width: 100%"
+              class="hide-print"
+              >Show more</AButton
+            >
           </template>
         </AList>
         <p class="more-schools print-only">
@@ -298,49 +303,18 @@ watch(
         </p>
       </div>
     </main>
-  </div>
-  <div class="home-container" v-else>
-    <div class="home-header"></div>
-    <div style="padding-top: 30vh"></div>
-    <h1 class="home-title">
-      <WebsiteTitle></WebsiteTitle>
-    </h1>
-    <div>
-      <!-- <ASelect
-        :options="homeParamOptions"
-        v-model:value="addParamValue"
-        class="home-select"
-        size="large"
-      ></ASelect> -->
-      <AButton @click="openSelectModal" size="large" class="home-select">
-        Click here & start your ranking!
-      </AButton>
-    </div>
-    <div class="home-links">
-      <ASpace size="large">
-        <span style="font-size: 16px">Or try these:</span>
-        <a
-          class="home-link"
-          v-for="{ label, href } in homeLinks"
-          :key="href"
-          :href="href"
-          v-text="label"
-        ></a>
-      </ASpace>
-    </div>
-    <div class="home-spacer"></div>
-    <div class="home-desc">
-      <p>Create college rankings with your own set of parameters!</p>
-      <p>Website created by David Wang</p>
-      <p>
-        Source code available on
+    <footer class="layout-footer">
+      <div>
+        Website created by David Wang | Source code available on
         <ASpace>
-          <a href="https://github.com/david-why/mcr" target="_blank" style="font-size: 16px"
-            >GitHub</a
-          >
+          <a href="https://github.com/david-why/mcr" target="_blank">GitHub</a>
         </ASpace>
-      </p>
-    </div>
+      </div>
+      <div>
+        This website is not affiliated with Niche.com or any other organization, and is for
+        educational purposes only. All data is from Niche.com.
+      </div>
+    </footer>
   </div>
   <IntroModal></IntroModal>
   <HelpModal v-model:open="helpModalOpen"></HelpModal>
@@ -351,68 +325,29 @@ watch(
     v-model:checked="chosenOptions"
   ></SelectModal>
   <WebsiteTour v-model:open="isTouring" ref="tour"></WebsiteTour>
+  <AButton
+    shape="circle"
+    size="large"
+    style="position: fixed; bottom: 36px; right: 36px; background-color: #fffe"
+    @click="goToTop"
+  >
+    <ArrowUpOutlined></ArrowUpOutlined>
+  </AButton>
 </template>
 
 <style scoped>
-/* Home */
-.home-container {
-  font-size: 16px;
-  text-align: center;
-}
-.home-header {
-  background: #001529;
-  height: 32px;
-}
-.home-title {
-  font-size: 2.5em;
-  text-align: center;
-  word-spacing: 0.2em;
-}
-.rainbow-text {
-  background-image: linear-gradient(to right, #f50, #2db7f5);
-  color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.home-select {
-  width: 40%;
-  min-width: 614px;
-  margin-top: 24px;
-}
-.home-select :deep(.ant-select-selection-item) {
-  text-align: center;
-}
-.home-links {
-  margin-top: 16px;
-}
-.home-link {
-  font-size: 16px;
-}
-.home-spacer {
-  height: 48px;
-}
-.home-desc p {
-  padding-bottom: 12px;
-}
-@media screen and (max-width: 768px) {
-  .home-select {
-    width: 80%;
-    min-width: 0;
-  }
-}
 /* Layout */
 .container {
   display: grid;
   grid-template-columns: 350px 1fr;
-  grid-template-rows: 64px 1fr;
-  grid-template-areas: 'header header' 'aside main';
+  grid-template-rows: 64px 1fr auto;
+  grid-template-areas: 'header header' 'aside main' 'footer footer';
 }
 @media screen and (max-width: 768px) {
   .container {
-    grid-template-rows: 64px auto 1fr;
     grid-template-columns: 1fr;
-    grid-template-areas: 'header' 'aside' 'main';
+    grid-template-rows: 64px auto 1fr auto;
+    grid-template-areas: 'header' 'aside' 'main' 'footer';
   }
 }
 @media print {
@@ -475,5 +410,17 @@ watch(
 .more-schools {
   font-style: italic;
   text-align: center;
+}
+/* Footer */
+.layout-footer {
+  grid-area: footer;
+  background: #001529;
+  color: #fffc;
+  text-align: center;
+  line-height: 24px;
+  padding: 8px 20px;
+}
+.layout-footer > div {
+  margin: 8px 0;
 }
 </style>

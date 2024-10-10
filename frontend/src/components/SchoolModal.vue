@@ -105,7 +105,4 @@ const satRange = computed(() => {
 .school-modal p {
   margin-bottom: 8px;
 }
-.school-modal h2 {
-  font-weight: 500;
-}
 </style>
