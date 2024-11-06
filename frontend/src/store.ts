@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 
 export const userParams = ref<UserParameter[]>([])
 
+export const expandedParamGroups = ref<string[]>([])
+
 const seenHelpCounter = ref(0)
 
 export const seenHelp = computed({
@@ -19,5 +21,3 @@ export const seenHelp = computed({
 export const isPrinting = ref(false)
 
 export const isTouring = ref(false)
-
-export const isSelecting = ref(false)

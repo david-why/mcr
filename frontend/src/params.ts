@@ -98,6 +98,7 @@ function majorRankingParam(id: keyof typeof data.meta.major_rankings, code: stri
 }
 
 const params: Parameter[] = [
+  { ...rankingParam('best-colleges', 'Niche Overall Rank', 'ov'), group: 'General' },
   {
     id: 'northern',
     name: 'Northern schools',
@@ -233,7 +234,6 @@ const params: Parameter[] = [
       return normalizeValue(school.employed_after_graduation, 'employed_after_graduation')
     }
   },
-  rankingParam('best-colleges', 'Niche Overall Rank', 'ov'),
   rankingParam('best-college-academics', 'Best Academics', 'ac'),
   rankingParam('best-college-athletics', 'Best Athletics', 'at'),
   rankingParam('best-college-campuses', 'Best Campuses', 'ca'),

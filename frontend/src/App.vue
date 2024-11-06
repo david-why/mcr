@@ -1,55 +1,31 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
-import params, { dumpHash, loadHash, type UserParameter } from '@/params'
-import { isPrinting, isSelecting, isTouring, userParams } from '@/store'
+import params, { dumpHash, loadHash, type Parameter } from '@/params'
+import { expandedParamGroups, isTouring, userParams } from '@/store'
 import {
   ArrowUpOutlined,
   DeleteOutlined,
-  PlusCircleOutlined,
   QuestionCircleOutlined,
   ShareAltOutlined
 } from '@ant-design/icons-vue'
 import { notification } from 'ant-design-vue'
-import { computed, h, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const DEFAULT_IMPORTANCE = 50
 const hasBackend = !!import.meta.env.VITE_SHARE_BACKEND
 
-const tour = ref<{ startTour: () => Promise<void> }>({} as any)
-
+// sync hash with userParams
 const currentHash = ref('')
-const fullPath = computed(() => {
+const fullUrl = computed(() => {
   currentHash.value
   return location.href
 })
 
-const secondCounter = ref(0)
-const secondTimer = ref(0)
-
 function onHashChange() {
-  console.log('hashchange', location.hash, currentHash.value)
   if (location.hash === currentHash.value) return
   currentHash.value = location.hash
   userParams.value = loadHash(decodeURIComponent(location.hash.slice(1)))
 }
-
-onMounted(() => {
-  if (location.hash.length > 1) {
-    currentHash.value = location.hash
-    userParams.value = loadHash(decodeURIComponent(location.hash.slice(1)))
-  }
-  window.addEventListener('hashchange', onHashChange)
-  secondTimer.value = setInterval(() => {
-    secondCounter.value++
-  }, 1000)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('hashchange', onHashChange)
-  if (secondTimer.value) {
-    clearInterval(secondTimer.value)
-  }
-})
 
 watch(
   userParams,
@@ -59,100 +35,75 @@ watch(
   { deep: true }
 )
 
-function goHome() {
-  if (isTouring.value) {
-    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
-    return
+onMounted(() => {
+  if (location.hash.length > 1) {
+    currentHash.value = location.hash
+    userParams.value = loadHash(decodeURIComponent(location.hash.slice(1)))
   }
-  userParams.value = []
-}
+  window.addEventListener('hashchange', onHashChange, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('hashchange', onHashChange)
+})
+
+// help modal
+
+const helpModalOpen = ref(false)
 
 function openHelpModal() {
   if (isTouring.value) {
-    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    // notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
     return
   }
   // helpModalOpen.value = true
   isTouring.value = true
 }
 
-function openSelectModal() {
-  if (isTouring.value) {
-    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
-    return
-  }
-  isSelecting.value = true
+// share drawer
+
+const shareDrawerOpen = ref(false)
+
+function shareRanking() {
+  shareDrawerOpen.value = true
 }
 
-function resetRanking() {
+// utils
+
+function goHome() {
   if (isTouring.value) {
-    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    // notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
     return
   }
   userParams.value = []
 }
 
-function shareRanking() {
-  shareDrawerOpen.value = true
+function resetRanking() {
+  if (isTouring.value) {
+    // notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    return
+  }
+  userParams.value = []
 }
 
 function goToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-const allOptions = computed(() => {
+// param list
+
+const paramGroups = computed(() => {
   const groups: string[] = []
   for (const param of params) {
     if (param.group && !groups.includes(param.group)) {
       groups.push(param.group)
     }
   }
-  return [{ label: 'Select a parameter to add...', value: '' } as any].concat(
-    groups.map((group) => ({
-      label: group,
-      options: params
-        .filter((param) => param.group === group)
-        .map((param) => ({
-          value: param.id,
-          label: param.name
-        }))
-    }))
-  )
+  return groups.map((group) => ({
+    label: group,
+    options: params.filter((param) => param.group === group)
+  }))
 })
-const paramOptions = computed(() => {
-  return allOptions.value.map((group) => {
-    if (group.options) {
-      return {
-        label: group.label,
-        options: group.options.filter(
-          (option: { id: string }) => !userParams.value.find((p) => p.id === option.id)
-        )
-      }
-    }
-    return group
-  })
-})
-const checkOptions = computed(() => {
-  return paramOptions.value.filter((group) => group.options && group.options.length > 0)
-})
-
-const addParamValue = ref('')
-
-watch(addParamValue, (value) => {
-  if (value) {
-    const args: Record<string, number> = {}
-    for (const arg of params.find((param) => param.id === value)!.arguments) {
-      args[arg.id] = arg.default === undefined ? arg.min : arg.default
-    }
-    userParams.value.push({ id: value, importance: DEFAULT_IMPORTANCE, args })
-    addParamValue.value = ''
-  }
-})
-
-function updateItem(item: UserParameter) {
-  const index = userParams.value.findIndex((p) => p.id === item.id)
-  userParams.value[index] = item
-}
 
 const scoreMultiplier = computed(() => {
   return 100 / userParams.value.reduce((acc, param) => acc + param.importance, 0)
@@ -191,37 +142,38 @@ const displaySchools = computed(() => {
     .slice(0, schoolDisplayCount.value)
 })
 
-const helpModalOpen = ref(false)
-const shareDrawerOpen = ref(false)
+// param stuff
+const chosenParamIds = computed(() => {
+  // { [id: string]: number } // index into userParams
+  const ids: Record<string, number> = {}
+  for (let i = 0; i < userParams.value.length; i++) {
+    ids[userParams.value[i].id] = i
+  }
+  return ids
+})
 
-const chosenOptions = ref<string[]>([])
-watch(
-  () => [...userParams.value],
-  (value, oldValue) => {
-    if (JSON.stringify(value) === JSON.stringify(oldValue)) {
-      return
-    }
-    chosenOptions.value = value.map((p) => p.id)
+const computedActiveGroups = computed({
+  get: () => {
+    return paramGroups.value.map(({ label }) =>
+      expandedParamGroups.value.includes(label) ? label : '!' + label
+    )
   },
-  { deep: true }
-)
-watch(
-  chosenOptions,
-  (value) => {
-    userParams.value = userParams.value.filter((p) => value.includes(p.id))
-    for (const param of value) {
-      if (userParams.value.find((p) => p.id === param)) {
-        continue
-      }
-      const args: Record<string, number> = {}
-      for (const arg of params.find((p) => p.id === param)!.arguments) {
-        args[arg.id] = arg.default === undefined ? arg.min : arg.default
-      }
-      userParams.value.push({ id: param, importance: DEFAULT_IMPORTANCE, args })
+  set: (value) => {
+    expandedParamGroups.value = value.filter((v) => !v.startsWith('!'))
+  }
+})
+
+function modifyParam(param: Parameter, checked: boolean) {
+  if (checked && !userParams.value.find((p) => p.id === param.id)) {
+    const args: Record<string, number> = {}
+    for (const arg of param.arguments) {
+      args[arg.id] = arg.default === undefined ? arg.min : arg.default
     }
-  },
-  { deep: true }
-)
+    userParams.value.push({ id: param.id, importance: DEFAULT_IMPORTANCE, args })
+  } else if (!checked) {
+    userParams.value = userParams.value.filter((p) => p.id !== param.id)
+  }
+}
 </script>
 
 <template>
@@ -240,35 +192,72 @@ watch(
       <div>
         <h1 class="aside-title print-only">My College Ranking</h1>
         <div style="margin-top: 36px" class="hide-print"></div>
-        <h1 style="padding-left: 24px" class="hide-print">Parameters</h1>
+        <h1 style="padding-inline: 24px" class="hide-print">Ranking factors</h1>
         <!-- class used in tour -->
-        <AList
-          :data-source="userParams"
-          :locale="{
-            emptyText: h(
-              'div',
-              { style: { color: 'rgba(0, 0, 0, 0.75)' } },
-              'No parameters selected. Click on the &quot;Add parameters&quot; button below to add some!'
-            )
-          }"
-          size="large"
-          class="param-list"
-          :class="{ 'hide-print': userParams.length === 0 }"
-        >
-          <template #renderItem="{ item }">
-            <!-- this hack (instead of v-model) is needed because `item` is readonly -->
-            <UserParamItem
-              :model-value="item"
-              @update:model-value="updateItem"
-              :key="item.id"
-            ></UserParamItem>
-          </template>
-        </AList>
-        <ASpace class="hide-print" style="width: 100%; padding: 0 12px" direction="vertical">
-          <!-- class used in tour -->
-          <AButton class="add-params-button" @click="openSelectModal" style="width: 100%">
-            <PlusCircleOutlined></PlusCircleOutlined> Add parameters
-          </AButton>
+        <template v-if="!userParams.length">
+          <div
+            class="hide-print"
+            style="
+              margin: 8px 16px 0 16px;
+              padding: 8px;
+              border-radius: 16px;
+              background: #f5f5f5;
+              color: rgba(0, 0, 0, 0.65);
+            "
+          >
+            No ranking factors selected. You can add some factors from the categories below to
+            create your own college ranking!
+          </div>
+          <div class="print-only" style="padding: 8px 24px">
+            No ranking factors selected. You can add some factors from the categories below to
+            create your own college ranking!
+          </div>
+        </template>
+        <div class="user-params print-only" v-else>
+          <AList :data-source="userParams" size="large">
+            <template #renderItem="{ index }">
+              <UserParamItem v-model="userParams[index]"></UserParamItem>
+            </template>
+          </AList>
+        </div>
+        <!-- class used in tour -->
+        <div style="padding-left: 8px" class="param-list hide-print">
+          <ACollapse v-model:active-key="computedActiveGroups" ghost>
+            <template v-for="group in paramGroups" :key="group.label">
+              <ACollapsePanel v-if="true" :key="group.label">
+                <template #header>
+                  <span>{{ group.label }}</span>
+                </template>
+                <div v-for="param in group.options" :key="param.id">
+                  <ACheckbox
+                    :checked="typeof chosenParamIds[param.id] === 'number'"
+                    @change="(event) => modifyParam(param, event.target.checked)"
+                    class="param-checkbox"
+                  >
+                    <strong>{{ param.name }}</strong>
+                  </ACheckbox>
+                  <UserParam
+                    v-if="typeof chosenParamIds[param.id] === 'number'"
+                    v-model="userParams[chosenParamIds[param.id]]"
+                    style="margin-left: 24px"
+                  ></UserParam>
+                </div>
+              </ACollapsePanel>
+              <ACollapsePanel v-if="true" :show-arrow="false" :key="'!' + group.label">
+                <div
+                  v-for="param in group.options.filter(
+                    (p) => typeof chosenParamIds[p.id] === 'number'
+                  )"
+                  :key="param.id"
+                >
+                  <h4>{{ param.name }}</h4>
+                  <UserParam v-model="userParams[chosenParamIds[param.id]]"></UserParam>
+                </div>
+              </ACollapsePanel>
+            </template>
+          </ACollapse>
+        </div>
+        <ASpace class="hide-print" style="width: 100%; padding: 12px 12px 0" direction="vertical">
           <!-- class used in tour -->
           <AFlex class="buttons-row-2" :gap="8">
             <AButton danger @click="resetRanking"><DeleteOutlined></DeleteOutlined> Reset</AButton>
@@ -299,7 +288,7 @@ watch(
           </template>
         </AList>
         <p class="more-schools print-only">
-          For more colleges on this ranking, please visit: {{ fullPath }}
+          For more colleges on this ranking, please visit: {{ fullUrl }}
         </p>
       </div>
     </main>
@@ -319,16 +308,12 @@ watch(
   <IntroModal></IntroModal>
   <HelpModal v-model:open="helpModalOpen"></HelpModal>
   <ShareDrawer v-if="hasBackend" v-model:open="shareDrawerOpen"></ShareDrawer>
-  <SelectModal
-    v-model:open="isSelecting"
-    :options="checkOptions"
-    v-model:checked="chosenOptions"
-  ></SelectModal>
   <WebsiteTour v-model:open="isTouring" ref="tour"></WebsiteTour>
   <AButton
     shape="circle"
     size="large"
     style="position: fixed; bottom: 36px; right: 36px; background-color: #fffe"
+    class="hide-print"
     @click="goToTop"
   >
     <ArrowUpOutlined></ArrowUpOutlined>
@@ -354,7 +339,7 @@ watch(
   .container {
     grid-template-columns: 100%;
     grid-template-rows: auto auto;
-    grid-template-areas: 'aside' 'main';
+    grid-template-areas: 'aside' 'main' 'footer';
   }
 }
 /* Header */
@@ -372,6 +357,11 @@ watch(
 .header-title {
   font-weight: bold;
 }
+@media print {
+  .layout-header {
+    display: none;
+  }
+}
 /* Aside */
 .layout-aside {
   grid-area: aside;
@@ -380,6 +370,18 @@ watch(
 .aside-title {
   margin-left: 24px;
   font-size: 2em;
+}
+.param-list :deep(.ant-collapse-content-box) {
+  padding-block: 0 !important;
+}
+.param-checkbox {
+  width: 100%;
+}
+.param-checkbox > :deep(span:nth-child(2)) {
+  flex: 1 0 auto;
+}
+.param-list :deep(.ant-collapse-no-arrow) .ant-collapse-header {
+  display: none !important;
 }
 @media print {
   .layout-aside {
@@ -422,5 +424,11 @@ watch(
 }
 .layout-footer > div {
   margin: 8px 0;
+}
+@media print {
+  .layout-footer {
+    background: #fff;
+    color: #000;
+  }
 }
 </style>

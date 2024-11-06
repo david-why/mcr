@@ -1,7 +1,9 @@
 @import './base.css';
 
-.print-only {
-  display: none;
+@media not print {
+  .print-only {
+    display: none;
+  }
 }
 
 @media print {
@@ -12,9 +14,6 @@
   .hide-print {
     display: none !important;
   }
-  .print-only {
-    display: unset;
-  }
   .ant-card-hoverable:hover {
     box-shadow: none !important;
   }
@@ -22,4 +21,9 @@
 
 .ant-tour {
   max-width: calc(100vw - 20px);
+}
+
+.ant-tour-inner {
+  border: 1px solid black !important;
+  margin: 8px;
 }

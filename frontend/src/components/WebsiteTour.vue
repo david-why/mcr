@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isSelecting, userParams } from '@/store'
+import { expandedParamGroups, userParams } from '@/store'
 import { Button as AButton, notification } from 'ant-design-vue'
 import { h, nextTick, ref, watch } from 'vue'
 import { QuestionCircleOutlined } from '@ant-design/icons-vue'
@@ -19,48 +19,29 @@ const steps: any[] = [
     description: h('div', [
       h(
         'p',
-        'Welcome to My College Ranking! You can create your very own college ranking by choosing from a variety of parameters (criteria), such as location, size, cost, and more.'
+        'Welcome to My College Ranking! You can create your very own college ranking by choosing from a variety of factors and customizing their importance, such as location, size, cost, and more.'
       )
     ])
   },
   {
-    title: 'Add parameters',
-    description: 'You can add parameters by clicking on the "Add parameters" button.',
-    target: () => document.querySelector('.add-params-button')!
-  },
-  {
-    title: 'Add parameters',
+    title: 'Choose factors',
     description:
-      'Here, you can select the parameters that matter to you. Check the boxes next to the parameters you want to include in your ranking. You can adjust the importance of each parameter to determine how much this parameter is considered among the others later.',
-    target: () => document.querySelector('.select-modal .ant-modal-content')!,
-    placement: 'bottom'
-  },
-  {
-    title: 'Parameters',
-    description:
-      'We chose some sample parameters for demo purposes. The website will calculate a score for each college based on these parameters, and sort the colleges based on the scores. Here, you can adjust the importance of each parameter by dragging the blue slider.',
+      'Here, you can select the factors that matter to you. Click the categories to open or close them, and check the boxes next to the factors you want to include in your ranking. You can adjust the importance of each factor to determine how much it is considered among the others.',
     target: () => document.querySelector('.param-list')!,
-    placement: 'bottom'
+    placement: 'right'
   },
-  // {
-  //   title: 'Add parameters',
-  //   description:
-  //     'You can add parameters by clicking on the "Add parameters" button. Then, you can adjust the importance of each parameter to determine how much this parameter is considered among the others.',
-  //   target: () => document.querySelector('.add-params-button')!
-  // },
+  {
+    title: 'College list',
+    description:
+      'This is the list of colleges, sorted based on the scores calculated from your ranking factors. You can click on a college to view more details.',
+    target: () => document.querySelector('.school-list')!,
+    placement: 'top'
+  },
   {
     title: 'Share your ranking',
     description:
       'You can share your ranking with others by clicking on the "Share rankings" button, where you can print your ranking, copy a link to it, or share it publicly. You can reset your ranking by clicking on the "Reset" button.',
     target: () => document.querySelector('.buttons-row-2')!
-  },
-  {
-    title: 'College list',
-    description:
-      'This is the list of colleges. The colleges are sorted based on the scores calculated from the parameters. You can click on a college to view more details.',
-    target: () => document.querySelector('.school-list')!,
-    placement: 'top',
-    arrow: false
   },
   {
     title: "That's it!",
@@ -70,38 +51,28 @@ const steps: any[] = [
       '" button to view this demo again.'
     ]),
     target: () => document.querySelector('.anticon-question-circle')!,
-    placement: 'bottomLeft'
+    placement: 'bottomRight'
   }
 ]
 
 const current = ref(0)
-watch(current, async (value) => {
-  if (value === 2) {
-    isSelecting.value = true
-    setTimeout(() => {
-      counter.value++
-    }, 1000)
-  } else {
-    isSelecting.value = false
-  }
-})
 
 async function startTour(step = 0) {
   userParams.value = [
     {
       id: 'best-colleges',
-      importance: 50,
+      importance: 75,
       args: {}
     },
     {
-      id: 'sat-range',
-      importance: 100,
-      args: { sat: 1400 }
+      id: 'student-faculty-ratio',
+      importance: 50,
+      args: {}
     }
   ]
+  expandedParamGroups.value = ['General']
   counter.value++
   current.value = step
-  await nextTick()
   open.value = true
 }
 
@@ -123,10 +94,10 @@ defineExpose({
   <ATour
     v-model:current="current"
     :open="open"
-    :arrow="false"
     :steps="steps"
     @close="open = false"
     :key="counter"
+    :arrow="false"
   >
     <template #indicatorsRender="{ current, total }">
       <span v-if="current + 1 < total.value">{{ current + 1 }} / {{ total }}</span>

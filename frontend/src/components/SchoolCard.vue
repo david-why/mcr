@@ -17,7 +17,7 @@ function truncate(text: string | null) {
 
 function onClick() {
   if (isTouring.value) {
-    notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
+    // notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
     return
   }
   modalOpen.value = true
