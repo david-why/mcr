@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { expandedParamGroups, userParams } from '@/store'
-import { Button as AButton, notification } from 'ant-design-vue'
-import { h, nextTick, ref, watch } from 'vue'
 import { QuestionCircleOutlined } from '@ant-design/icons-vue'
+import { Button as AButton, notification } from 'ant-design-vue'
+import { h, ref, watch } from 'vue'
 
 const open = defineModel<boolean>('open', { required: true })
 watch(open, (value, oldValue) => {

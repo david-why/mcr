@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import data from '@/assets/data.json'
-import params, { dumpHash, loadHash, type Parameter } from '@/params'
+import params, { dumpHash, loadHash, type Parameter, type UserParameter } from '@/params'
 import { expandedParamGroups, isTouring, userParams } from '@/store'
 import {
   ArrowUpOutlined,
@@ -8,7 +8,6 @@ import {
   QuestionCircleOutlined,
   ShareAltOutlined
 } from '@ant-design/icons-vue'
-import { notification } from 'ant-design-vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const DEFAULT_IMPORTANCE = 50
@@ -53,10 +52,8 @@ const helpModalOpen = ref(false)
 
 function openHelpModal() {
   if (isTouring.value) {
-    // notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
     return
   }
-  // helpModalOpen.value = true
   isTouring.value = true
 }
 
@@ -72,7 +69,6 @@ function shareRanking() {
 
 function goHome() {
   if (isTouring.value) {
-    // notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
     return
   }
   userParams.value = []
@@ -80,7 +76,6 @@ function goHome() {
 
 function resetRanking() {
   if (isTouring.value) {
-    // notification.warn({ message: 'Please finish the tour first!', placement: 'topLeft' })
     return
   }
   userParams.value = []
@@ -143,13 +138,37 @@ const displaySchools = computed(() => {
 })
 
 // param stuff
-const chosenParamIds = computed(() => {
-  // { [id: string]: number } // index into userParams
-  const ids: Record<string, number> = {}
-  for (let i = 0; i < userParams.value.length; i++) {
-    ids[userParams.value[i].id] = i
+// const chosenParamIds = computed(() => {
+//   // { [id: string]: number } // index into userParams
+//   const ids: Record<string, number> = {}
+//   for (let i = 0; i < userParams.value.length; i++) {
+//     ids[userParams.value[i].id] = i
+//   }
+//   return ids
+// })
+const chosenUserParams = computed({
+  get: () => {
+    const pms: Record<string, UserParameter | null> = {}
+    for (const param of params) {
+      const userParam = userParams.value.find((p) => p.id === param.id)
+      pms[param.id] = userParam || null
+    }
+    return pms
+  },
+  set: (value) => {
+    for (const param of params) {
+      if (value[param.id]) {
+        if (!userParams.value.find((p) => p.id === param.id)) {
+          userParams.value.push(value[param.id]!)
+        } else {
+          const index = userParams.value.findIndex((p) => p.id === param.id)
+          userParams.value[index] = value[param.id]!
+        }
+      } else {
+        userParams.value = userParams.value.filter((p) => p.id !== param.id)
+      }
+    }
   }
-  return ids
 })
 
 const computedActiveGroups = computed({
@@ -171,9 +190,14 @@ function modifyParam(param: Parameter, checked: boolean) {
     }
     userParams.value.push({ id: param.id, importance: DEFAULT_IMPORTANCE, args })
   } else if (!checked) {
-    userParams.value = userParams.value.filter((p) => p.id !== param.id)
+    const index = userParams.value.findIndex((p) => p.id === param.id)
+    if (index !== -1) {
+      userParams.value.splice(index, 1)
+    }
   }
 }
+
+watch(userParams, (v) => console.log(v), { deep: true })
 </script>
 
 <template>
@@ -213,12 +237,11 @@ function modifyParam(param: Parameter, checked: boolean) {
             create your own college ranking!
           </div>
         </template>
-        <div class="user-params print-only" v-else>
-          <AList :data-source="userParams" size="large">
-            <template #renderItem="{ index }">
-              <UserParamItem v-model="userParams[index]"></UserParamItem>
-            </template>
-          </AList>
+        <div class="user-params print-only" v-else style="margin-left: 24px">
+          <div v-for="param in userParams" :key="param.id">
+            <h2 style="margin-block: 8px">{{ params.find((p) => p.id === param.id)!.name }}</h2>
+            <UserParam :model-value="param"></UserParam>
+          </div>
         </div>
         <!-- class used in tour -->
         <div style="padding-left: 8px" class="param-list hide-print">
@@ -230,28 +253,26 @@ function modifyParam(param: Parameter, checked: boolean) {
                 </template>
                 <div v-for="param in group.options" :key="param.id">
                   <ACheckbox
-                    :checked="typeof chosenParamIds[param.id] === 'number'"
+                    :checked="!!chosenUserParams[param.id]"
                     @change="(event) => modifyParam(param, event.target.checked)"
                     class="param-checkbox"
                   >
                     <strong>{{ param.name }}</strong>
                   </ACheckbox>
                   <UserParam
-                    v-if="typeof chosenParamIds[param.id] === 'number'"
-                    v-model="userParams[chosenParamIds[param.id]]"
+                    v-if="chosenUserParams[param.id]"
+                    v-model="chosenUserParams[param.id]!"
                     style="margin-left: 24px"
                   ></UserParam>
                 </div>
               </ACollapsePanel>
               <ACollapsePanel v-if="true" :show-arrow="false" :key="'!' + group.label">
                 <div
-                  v-for="param in group.options.filter(
-                    (p) => typeof chosenParamIds[p.id] === 'number'
-                  )"
+                  v-for="param in group.options.filter((p) => chosenUserParams[p.id])"
                   :key="param.id"
                 >
                   <h4>{{ param.name }}</h4>
-                  <UserParam v-model="userParams[chosenParamIds[param.id]]"></UserParam>
+                  <UserParam v-model="chosenUserParams[param.id]!"></UserParam>
                 </div>
               </ACollapsePanel>
             </template>
