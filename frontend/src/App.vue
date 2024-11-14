@@ -8,6 +8,7 @@ import {
   QuestionCircleOutlined,
   ShareAltOutlined
 } from '@ant-design/icons-vue'
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const DEFAULT_IMPORTANCE = 50
@@ -254,7 +255,9 @@ watch(userParams, (v) => console.log(v), { deep: true })
                 <div v-for="param in group.options" :key="param.id">
                   <ACheckbox
                     :checked="!!chosenUserParams[param.id]"
-                    @change="(event) => modifyParam(param, event.target.checked)"
+                    @change="
+                      (event: CheckboxChangeEvent) => modifyParam(param, event.target.checked)
+                    "
                     class="param-checkbox"
                   >
                     <strong>{{ param.name }}</strong>
